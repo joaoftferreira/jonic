@@ -29,6 +29,33 @@ html, body {
    during the moment before that script runs. */
 #lid { transform: translateY(-1000px); }
 
+/* ---- Chaos Emeralds ------------------------------------------------- */
+
+/* Hidden until the animation runs, so a reload never flashes stray gems. */
+.gems { visibility: hidden; }
+.emeralds-on .gems { visibility: visible; }
+
+/* The irises shrink away to leave each eye as a clean display for the gems,
+   and come back when any other animation is played. */
+.pupil { transition: transform 400ms ease, opacity 400ms ease; }
+.emeralds-on .pupil { transform: scale(0); opacity: 0; }
+
+/* The finished octagon turns forever. One animated group per eye rather than
+   eight counter-rotating gems: far cheaper on a Pi that paints ~20 fps.
+   The pivot and the duration are set inline, per eye, from the geometry. */
+.ring.spinning {
+  animation-name: emerald-spin;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes emerald-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* The blue one is invisible until it zooms in from behind. */
+.gem-center { opacity: 0; }
+
 #offline {
   position: fixed;
   right: 6px;
@@ -41,4 +68,6 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .eye { transition-duration: 1ms; }
+  .pupil { transition-duration: 1ms; }
+  .ring.spinning { animation: none; }
 }

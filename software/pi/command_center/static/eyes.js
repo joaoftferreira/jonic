@@ -75,11 +75,108 @@
     }
   }
 
+  /* ---- the Chaos Emeralds ---------------------------------------------- */
+
+  var EM = data.emeralds;
+  var gemGroups = document.querySelectorAll(".gems");
+  var emeraldAnims = [];
+  var emeraldTimer = null;
+
+  function easeOutCubic(u) { return 1 - Math.pow(1 - u, 3); }
+
+  // Every gem flies the same trail at the same speed, one stagger apart: a
+  // straight run in from off the side of the face, then a constant orbit
+  // around the eye's centre. They all stop at the same instant, so the gem
+  // that set off first has travelled furthest and ends up the furthest corner
+  // round, while the last one barely clears the entry point. That ordering is
+  // what makes it read as a snake rather than a fan opening out.
+  function gemFrames(eye, slot) {
+    var duration = EM.entryMs - slot * EM.staggerMs;
+    var entry = eye.entry * Math.PI / 180;
+    var startX = eye.cx + EM.entryRadius * Math.cos(entry);
+    var startY = eye.cy + EM.entryRadius * Math.sin(entry);
+    var ringX = eye.cx + EM.ringRadius * Math.cos(entry);
+    var ringY = eye.cy + EM.ringRadius * Math.sin(entry);
+    var frames = [];
+    for (var k = 0; k <= 30; k++) {
+      var t = duration * k / 30;          // this gem's own clock
+      var x, y;
+      if (t < EM.flyMs) {
+        var u = t / EM.flyMs;             // linear, so the speed matches the
+        x = startX + (ringX - startX) * u; // orbit it hands over to
+        y = startY + (ringY - startY) * u;
+      } else {
+        var a = entry + (t - EM.flyMs) * EM.degPerMs * Math.PI / 180;
+        x = eye.cx + EM.ringRadius * Math.cos(a);
+        y = eye.cy + EM.ringRadius * Math.sin(a);
+      }
+      frames.push({
+        offset: k / 30,
+        transform: "translate(" + x + "px," + y + "px) scale(" + EM.gemScale + ")"
+      });
+    }
+    return frames;
+  }
+
+  function stopEmeralds() {
+    if (emeraldTimer) { clearTimeout(emeraldTimer); emeraldTimer = null; }
+    for (var i = 0; i < emeraldAnims.length; i++) { emeraldAnims[i].cancel(); }
+    emeraldAnims = [];
+    var rings = document.querySelectorAll(".ring");
+    for (var r = 0; r < rings.length; r++) { rings[r].classList.remove("spinning"); }
+    stage.classList.remove("emeralds-on");
+  }
+
+  function showEmeralds() {
+    if (!EM) { return; }              // server too old to describe them
+    stopEmeralds();                   // a second press restarts the reveal
+    stage.classList.add("emeralds-on");
+
+    for (var e = 0; e < EM.eyes.length; e++) {
+      var gems = gemGroups[e].querySelectorAll(".gem");
+      for (var i = 0; i < gems.length; i++) {
+        // fill "both" so a gem sits off-screen before its delay elapses and
+        // holds its corner once it arrives.
+        emeraldAnims.push(gems[i].animate(gemFrames(EM.eyes[e], i), {
+          // Shorter duration for each later gem, same speed: that is how they
+          // all arrive together having travelled different distances.
+          duration: EM.entryMs - i * EM.staggerMs,
+          delay: i * EM.staggerMs,
+          easing: "linear",
+          fill: "both"
+        }));
+      }
+    }
+
+    // The blue one waits for the octagon to close, then zooms in from behind.
+    var settle = EM.entryMs;          // every gem lands at the same moment
+    emeraldTimer = setTimeout(function () {
+      for (var e = 0; e < EM.eyes.length; e++) {
+        var eye = EM.eyes[e];
+        var at = "translate(" + eye.cx + "px," + eye.cy + "px) ";
+        emeraldAnims.push(gemGroups[e].querySelector(".gem-center").animate([
+          { transform: at + "scale(0)", opacity: 0 },
+          { transform: at + "scale(" + (EM.centerScale * 1.18) + ")",
+            opacity: 1, offset: 0.7 },
+          { transform: at + "scale(" + EM.centerScale + ")", opacity: 1 }
+        ], { duration: EM.centerMs, easing: "ease-out", fill: "both" }));
+        gemGroups[e].querySelector(".ring").classList.add("spinning");
+      }
+      emeraldTimer = null;
+    }, settle);
+  }
+
+  // Every other animation puts the eyes back, which is how the emeralds end.
+  function andClearEmeralds(run) {
+    return function () { stopEmeralds(); run(); };
+  }
+
   var ANIMATIONS = {
-    blink: blink,
-    look_left: function () { gazeTo(-1); },
-    look_right: function () { gazeTo(1); },
-    center: function () { gazeTo(0); }
+    blink: andClearEmeralds(blink),
+    look_left: andClearEmeralds(function () { gazeTo(-1); }),
+    look_right: andClearEmeralds(function () { gazeTo(1); }),
+    center: andClearEmeralds(function () { gazeTo(0); }),
+    emeralds: showEmeralds
   };
 
   function handle(message) {
@@ -110,10 +207,11 @@
   /* ---- bench testing without a phone ----------------------------------- */
 
   document.addEventListener("keydown", function (event) {
-    if (event.key === "b" || event.key === " ") { blink(); }
-    else if (event.key === "ArrowLeft") { gazeTo(-1); }
-    else if (event.key === "ArrowRight") { gazeTo(1); }
-    else if (event.key === "ArrowDown") { gazeTo(0); }
+    if (event.key === "b" || event.key === " ") { ANIMATIONS.blink(); }
+    else if (event.key === "ArrowLeft") { ANIMATIONS.look_left(); }
+    else if (event.key === "ArrowRight") { ANIMATIONS.look_right(); }
+    else if (event.key === "ArrowDown") { ANIMATIONS.center(); }
+    else if (event.key === "e") { showEmeralds(); }
     else { return; }
     event.preventDefault();
   });

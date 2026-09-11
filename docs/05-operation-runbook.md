@@ -37,9 +37,14 @@ You are the puppeteer. The four buttons are all there is:
 | **👈 Look left** | the eyes turn left and **hold** |
 | **Look right 👉** | the eyes turn right and **hold** |
 | **👀 Look ahead** | back to looking straight at whoever is in front |
+| **💎 Emeralds** | the nine Chaos Emeralds gather in both eyes and keep turning |
 
 Because a look holds until you change it, remember to press **Look ahead** before you walk
 away, or Sonic spends the rest of the party staring at a wall.
+
+**Emeralds** is the payoff button. The gems take about two and a half seconds to gather, so
+press it as the children arrive rather than after, and let it keep turning while they look.
+It holds until you press something else, and any other button ends it.
 
 A blink between two looks sells the movement: look left, blink, look right reads as a
 character noticing something, while a bare slide reads as a machine.

@@ -19,7 +19,7 @@ from flask_sock import Sock
 from command_center.commands import BUTTONS, button
 from command_center.hub import WebSocketHub
 from common import mqtt_contract as c
-from eyes import animations, calibration
+from eyes import animations, calibration, emeralds
 from eyes import geometry
 
 BROKER = "127.0.0.1"      # the broker runs on this same Pi
@@ -103,6 +103,13 @@ def eyes_page():
         lid_color=animations.LID_COLOR,
         gaze_travel=animations.GAZE_TRAVEL,
         gaze_inner_ratio=animations.GAZE_INNER_RATIO,
+        emeralds=emeralds,
+        emerald_eyes=[
+            {"cx": cx, "cy": cy, "entry": entry,
+             "slots": [{"name": n, "color": c, "index": i}
+                       for i, (n, c) in enumerate(emeralds.RING_COLORS)]}
+            for (cx, cy), entry in zip(emeralds.EYE_CENTERS, emeralds.ENTRY_ANGLES)
+        ],
         blink={"ms": animations.BLINK_MS,
                "closedFrom": animations.BLINK_CLOSED_FROM,
                "closedTo": animations.BLINK_CLOSED_TO},

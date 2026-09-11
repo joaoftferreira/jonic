@@ -4,8 +4,15 @@ from eyes import animations as a
 from eyes.tests import outline
 
 
-def test_the_three_requested_animations_exist_plus_a_way_back_to_center():
-    assert set(a.ANIMATIONS) == {"blink", "look_left", "look_right", "center"}
+def test_the_animations_are_the_ones_the_remote_offers():
+    assert set(a.ANIMATIONS) == {"blink", "look_left", "look_right",
+                                 "center", "emeralds"}
+
+
+def test_emeralds_reports_how_long_the_reveal_takes():
+    from eyes import emeralds
+
+    assert a.ANIMATIONS["emeralds"]["duration_ms"] == emeralds.settle_ms()
 
 
 def test_blink_is_quick_but_drawable_on_a_slow_panel():

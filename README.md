@@ -19,6 +19,7 @@ can be stretched to fit whatever the mechanical frame ends up being.
 | 😉 **Blink** | a Sonic-blue eyelid drops over both eyes, holds shut, and lifts, 500 ms |
 | 👈 👉 **Look left / right / ahead** | the irises turn and hold until you change them |
 | 📱 **Phone remote** | four buttons, plus a live status pill for the face |
+| 💎 **Emeralds** | nine Chaos Emeralds snake into each eye, form an octagon around the blue one, and keep turning |
 | 🔧 **Live calibration** | width, height and position sliders that update the LCD as you drag, then save |
 
 **Not built yet:** the ESP32 side — a dual-wheel robot and switchable lights. The

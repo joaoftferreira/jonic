@@ -12,6 +12,20 @@
   <defs>
     <!-- Everything that moves is clipped to the eye outline, so an iris at
          full gaze and the eyelid mid-blink both stop exactly at the white. -->
+    <!-- One Chaos Emerald, ~10 x 13.5 units, centred on its own origin. The
+         body takes its colour from the `color` of whatever <use>s it, and the
+         facets are fixed light and dark washes on top, so a single fill drives
+         the whole gem. The thin outline keeps the yellow one from vanishing
+         against the white of the eye. -->
+    <g id="gem">
+      <path d="M -3.2,-6.75 L 3.2,-6.75 L 5,-2 L 0,6.75 L -5,-2 Z"
+            fill="currentColor" stroke="#00000055" stroke-width="0.45"/>
+      <path d="M -3.2,-6.75 L 3.2,-6.75 L 1.6,-2 L -1.6,-2 Z"
+            fill="#ffffff" opacity="0.45"/>
+      <path d="M 5,-2 L 1.6,-2 L 0,6.75 Z" fill="#ffffff" opacity="0.18"/>
+      <path d="M -5,-2 L -1.6,-2 L 0,6.75 Z" fill="#000000" opacity="0.25"/>
+    </g>
+
     <clipPath id="contour-clip" clipPathUnits="userSpaceOnUse">
       <path d="{{ geometry.CONTOUR_PATH }}"/>
     </clipPath>
@@ -27,12 +41,34 @@
            one heading away from it. -->
       {% for iris, shine in eyes %}
       <g class="eye">
-        <ellipse class="iris" cx="{{ iris.cx }}" cy="{{ iris.cy }}"
-                 rx="{{ iris.rx }}" ry="{{ iris.ry }}"
-                 transform="rotate({{ iris.rot }} {{ iris.cx }} {{ iris.cy }})"/>
-        <ellipse class="shine" cx="{{ shine.cx }}" cy="{{ shine.cy }}"
-                 rx="{{ shine.rx }}" ry="{{ shine.ry }}"
-                 transform="rotate({{ shine.rot }} {{ shine.cx }} {{ shine.cy }})"/>
+        <!-- .pupil exists only so the emeralds can shrink the iris away. The
+             gaze translate lives on .eye, so putting the scale here keeps the
+             two from overwriting each other, and the rotate stays an attribute
+             on the ellipses where CSS will not clobber it. -->
+        <g class="pupil" style="transform-origin: {{ iris.cx }}px {{ iris.cy }}px">
+          <ellipse class="iris" cx="{{ iris.cx }}" cy="{{ iris.cy }}"
+                   rx="{{ iris.rx }}" ry="{{ iris.ry }}"
+                   transform="rotate({{ iris.rot }} {{ iris.cx }} {{ iris.cy }})"/>
+          <ellipse class="shine" cx="{{ shine.cx }}" cy="{{ shine.cy }}"
+                   rx="{{ shine.rx }}" ry="{{ shine.ry }}"
+                   transform="rotate({{ shine.rot }} {{ shine.cx }} {{ shine.cy }})"/>
+        </g>
+      </g>
+      {% endfor %}
+
+      <!-- Nine emeralds per eye. Positions are absolute user units so the
+           ring can turn about an explicit pivot; see eyes.js. -->
+      {% for eye in emerald_eyes %}
+      <g class="gems">
+        <g class="ring" style="transform-origin: {{ eye.cx }}px {{ eye.cy }}px;
+                               animation-duration: {{ emeralds.SPIN_MS }}ms">
+          {% for slot in eye.slots %}
+          <use class="gem" href="#gem" style="color: {{ slot.color }}"
+               data-slot="{{ slot.index }}"/>
+          {% endfor %}
+        </g>
+        <use class="gem-center" href="#gem"
+             style="color: {{ emeralds.CENTER_COLOR[1] }}"/>
       </g>
       {% endfor %}
 
@@ -57,6 +93,18 @@
   "gazeTravel": gaze_travel,
   "gazeInnerRatio": gaze_inner_ratio,
   "blink": blink,
+  "emeralds": {
+    "eyes": emerald_eyes,
+    "ringRadius": emeralds.RING_RADIUS,
+    "entryRadius": emeralds.ENTRY_RADIUS,
+    "gemScale": emeralds.GEM_SCALE,
+    "centerScale": emeralds.CENTER_GEM_SCALE,
+    "entryMs": emeralds.ENTRY_MS,
+    "flyMs": emeralds.FLY_MS,
+    "staggerMs": emeralds.STAGGER_MS,
+    "centerMs": emeralds.CENTER_MS,
+    "degPerMs": emeralds.DEG_PER_MS,
+  },
   "calibration": calibration,
 } | tojson }}
 </script>

@@ -16,6 +16,8 @@ BUTTONS = [
      "transport": "eyes", "animation": "look_right", "group": "eyes"},
     {"id": "eyes_center", "label": "👀 Look ahead",
      "transport": "eyes", "animation": "center", "group": "eyes"},
+    {"id": "eyes_emeralds", "label": "💎 Emeralds",
+     "transport": "eyes", "animation": "emeralds", "group": "eyes"},
 ]
 
 _BY_ID = {b["id"]: b for b in BUTTONS}

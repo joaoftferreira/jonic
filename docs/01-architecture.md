@@ -44,6 +44,7 @@ page plays. The server holds no animation state and no timing; it only names the
 | `look_left` | both irises slide left and **stay** there | 180 ms |
 | `look_right` | both irises slide right and **stay** there | 180 ms |
 | `center` | irises return to the resting pose | 180 ms |
+| `emeralds` | nine Chaos Emeralds fill each eye, then turn forever | 2.6 s to settle |
 
 The blink holds shut in the middle rather than closing for an instant. The Pi 3 paints
 only about eight frames across the whole blink, so a momentary closure is usually never
@@ -51,6 +52,25 @@ drawn and the lid appears to stall halfway down. The plateau is worth roughly th
 which makes the eyes visibly shut on every press. Measured on the panel: six blinks out of
 six. The timing lives in `eyes/animations.py` and is handed to the page, so the two cannot
 drift apart.
+
+### The emeralds
+
+Nine gems per eye: eight on the corners of an octagon and the blue one in the middle. They
+snake in from the outer edge of each eye, loop around the centre until the octagon closes,
+and the blue one zooms in from behind. The ring then turns slowly and indefinitely. The
+irises shrink away while it runs and come back when any other animation is played, which is
+how the emeralds end.
+
+Every gem flies the same trail at the same speed, one stagger apart. They all stop at the
+same instant, so the gem that set off first has been travelling longest and ends up furthest
+around the ring, while the last one barely clears the entry point. That ordering is what
+makes it read as a snake rather than a fan opening out, and it fixes the angular speed:
+gems one stagger apart must land exactly one corner apart, so `DEG_PER_MS` is derived, not
+chosen.
+
+The two octagon centres were searched against the traced outline for the levellest, most
+mirrored pair that still clears the gems. The largest circle that fits sits at a different
+height in each lobe, and using those made the two clusters look lopsided.
 
 Gaze **latches** on purpose: a puppeteer wants to hold a look, so there is an explicit
 button to come back to centre rather than an automatic snap-back.
