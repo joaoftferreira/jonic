@@ -39,6 +39,22 @@ You are the puppeteer. The four buttons are all there is:
 | **👀 Look ahead** | back to looking straight at whoever is in front |
 | **💎 Emeralds** | the nine Chaos Emeralds gather in both eyes and keep turning |
 
+## Driving the robot
+
+| Control | What it does |
+|---------|--------------|
+| **▲ ◀ ▶ ▼** | hold to drive; let go and it stops. Left and right spin it on the spot |
+| **■** | an immediate stop |
+| **Speed** | motor power. Start low on carpet and raise it |
+| **💡 Lights on / off** | the white ring |
+| **🔓 OPEN** | the servo releases the lock on the chest |
+| **🔒 Re-arm lock** | returns the servo to zero, between rehearsals |
+
+The robot stops by itself if it stops hearing from the phone, so letting go,
+locking your phone or walking out of WiFi range all leave it standing still
+rather than driving off. Drive it on a stand first, with the wheels off the
+ground, before the children are in the room.
+
 Because a look holds until you change it, remember to press **Look ahead** before you walk
 away, or Sonic spends the rest of the party staring at a wall.
 

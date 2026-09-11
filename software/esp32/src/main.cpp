@@ -2,7 +2,10 @@
 #include <PubSubClient.h>
 #include "config.h"
 
-#if   defined(NODE_CREEPER)
+#if   defined(NODE_ROBOT)
+  #define NODE_NAME "robot"
+  #include "node_robot.h"
+#elif defined(NODE_CREEPER)
   #define NODE_NAME "creeper"
   #include "node_creeper.h"
 #elif defined(NODE_ENDERMAN)

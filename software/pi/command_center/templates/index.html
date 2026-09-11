@@ -6,16 +6,46 @@
 <title>Sonic Control</title>
 <link rel="stylesheet" href="/static/app.css">
 </head>
-<body>
+<body data-drive-repeat="{{ drive_repeat_ms }}">
 
 <h1>💙 Sonic Control</h1>
 <div id="status"></div>
 
-<div class="grid">
-  {% for b in buttons %}
-  <button class="action" data-id="{{ b.id }}">{{ b.label }}</button>
-  {% endfor %}
-</div>
+{% for group, buttons in groups %}
+  {% if group == 'eyes' %}
+    <h2>👀 Eyes</h2>
+    <div class="grid">
+      {% for b in buttons %}
+      <button class="action" data-id="{{ b.id }}">{{ b.label }}</button>
+      {% endfor %}
+    </div>
+
+  {% elif group == 'drive' %}
+    <h2>🤖 Eggman's robot</h2>
+    <p class="hint">Hold a direction to drive. Let go and it stops by itself.</p>
+    <div class="dpad">
+      {% for b in buttons %}
+      <button class="action drive {{ b.id }}" data-id="{{ b.id }}"
+              {% if b.hold %}data-hold="1"{% endif %}>{{ b.label }}</button>
+      {% endfor %}
+    </div>
+    <label class="slider">
+      <span class="name">Speed</span>
+      <input type="range" id="robot-speed" name="speed"
+             min="{{ robot_limits.speed[0] }}" max="{{ robot_limits.speed[1] }}"
+             step="1" value="{{ robot.speed }}">
+      <output>{{ robot.speed }}</output>
+    </label>
+    <div class="row"><button id="speed-save" class="minor save">Save speed</button></div>
+
+  {% else %}
+    <div class="grid">
+      {% for b in buttons %}
+      <button class="action" data-id="{{ b.id }}">{{ b.label }}</button>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endfor %}
 
 <details id="calibration">
   <summary>🔧 Eye calibration</summary>

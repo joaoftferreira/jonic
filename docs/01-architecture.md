@@ -126,8 +126,32 @@ sliders save on request and the Pi is normally switched off by pulling the plug.
 
 ## MQTT (the ESP32 side)
 
-Only heartbeats exist so far. Each node publishes `system/heartbeat/<node>` every 3 seconds
-and the remote shows a green pill for anything heard from in the last 10. Topics for the
-robot's drive and lights belong in `software/pi/common/mqtt_contract.py` when that work
-starts. The command center connects to the broker in the background and never blocks a
-request on it, so a missing broker costs nothing.
+Eggman's robot is one ESP32: two wheels through a DRV8800 each, a 16-LED NeoPixel ring, and
+a servo that releases the lock. The contract lives in
+`software/pi/common/mqtt_contract.py`.
+
+| Topic | Payload | Retained? | Effect |
+|-------|---------|-----------|--------|
+| `robot/drive` | `forward` \| `back` \| `left` \| `right` \| `stop` | **no** | drives while it keeps arriving |
+| `robot/speed` | `0`–`100` | yes | motor power |
+| `robot/lights` | `on` \| `off` | yes | the ring, white |
+| `robot/lock` | `open` \| `reset` | yes | the lock servo |
+
+**Why `robot/drive` alone is never retained.** The broker replays a retained message to any
+client that connects. A retained drive would therefore be delivered the instant the ESP32
+reconnected, and the robot would set off across the room with nobody touching the phone. The
+other three are retained for the opposite reason: a robot that reboots mid-party should come
+back at the speed you tuned, with its lights as you left them, and must not silently re-lock
+a chest the children have already opened.
+
+**Holding a button is a conversation, not a command.** The phone repeats `robot/drive` about
+five times a second while your finger is down, and the firmware brakes if half a second
+passes without one. Letting go, sliding off the button, locking the phone, backgrounding the
+browser, losing WiFi and the broker dying all end the same way: the robot stops. The phone
+also sends an explicit `stop` on release so it halts immediately rather than after the
+timeout.
+
+Each node publishes `system/heartbeat/<node>` every 3 seconds and the remote shows a green
+pill for anything heard from in the last 10. The command center connects to the broker in
+the background and never blocks a request on it, so the eyes come up with no broker running
+and no ESP32 in the house.

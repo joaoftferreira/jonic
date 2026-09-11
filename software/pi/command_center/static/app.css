@@ -61,6 +61,37 @@ button {
 button:active { transform: scale(.97); background: var(--blue-dark); }
 button.fired { background: #2e7d32; }
 
+h2 {
+  font-size: 15px;
+  margin: 16px 12px 4px;
+  color: #9aa3b2;
+  font-weight: 600;
+}
+
+/* Direction pad. The five drive buttons are placed by name rather than by
+   order, so the markup stays a plain list. */
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 8px 12px;
+}
+.dpad .robot_forward { grid-area: 1 / 2; }
+.dpad .robot_left    { grid-area: 2 / 1; }
+.dpad .robot_stop    { grid-area: 2 / 2; background: #6b2f2f; }
+.dpad .robot_right   { grid-area: 2 / 3; }
+.dpad .robot_back    { grid-area: 3 / 2; }
+.dpad button {
+  font-size: 26px;
+  padding: 20px 0;
+  /* No text selection or callout when a finger rests on a button. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+/* A held direction stays lit for as long as the robot is actually driving. */
+.dpad button.holding { background: #27ae60; }
+
 #calibration {
   margin: 4px 12px 24px;
   padding: 10px 12px;
@@ -70,7 +101,10 @@ button.fired { background: #2e7d32; }
 #calibration summary { font-size: 16px; padding: 4px 0; }
 .hint { font-size: 13px; color: #9aa3b2; margin: 6px 0 12px; }
 
+#robot-speed { accent-color: var(--gold); }
+
 .slider {
+  margin-inline: 12px;
   display: grid;
   grid-template-columns: 68px 1fr 56px;
   align-items: center;
@@ -81,6 +115,6 @@ button.fired { background: #2e7d32; }
 .slider output { font-size: 13px; text-align: right; color: var(--gold); }
 .slider input[type=range] { width: 100%; accent-color: var(--gold); }
 
-.row { display: flex; gap: 10px; margin-top: 16px; }
+.row { margin-inline: 12px; display: flex; gap: 10px; margin-top: 16px; }
 button.minor { flex: 1; font-size: 16px; padding: 14px 8px; background: #39404e; }
 button.minor.save { background: var(--gold); color: #221c00; font-weight: 700; }

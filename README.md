@@ -22,8 +22,10 @@ can be stretched to fit whatever the mechanical frame ends up being.
 | 💎 **Emeralds** | nine Chaos Emeralds snake into each eye, form an octagon around the blue one, and keep turning |
 | 🔧 **Live calibration** | width, height and position sliders that update the LCD as you drag, then save |
 
-**Not built yet:** the ESP32 side — a dual-wheel robot and switchable lights. The
-message bus and the heartbeat display are already in place for it.
+| 🤖 **Eggman's robot** | hold-to-drive on two wheels, a white LED ring, and a servo that unlocks the chest |
+
+**Hardware still to build:** the robot itself. The firmware compiles and the controls are
+live; see [docs/04-wiring.md](docs/04-wiring.md).
 
 ---
 
@@ -67,8 +69,8 @@ jonic/
 ├── docs/
 │   ├── 01-architecture.md         system overview + the animation contract
 │   ├── 02-raspberry-pi-setup.md   install, autostart, and calibration
-│   ├── 03-esp32-setup.md          ⚠ still the old Minecraft build
-│   ├── 04-wiring.md               ⚠ still the old Minecraft build
+│   ├── 03-esp32-setup.md          flash the robot's ESP32
+│   ├── 04-wiring.md               robot wiring + pin map
 │   └── 05-operation-runbook.md    party-day checklist
 └── software/
     ├── pi/
@@ -76,7 +78,7 @@ jonic/
     │   ├── command_center/        Flask app, WebSocket hub, both web pages
     │   ├── common/                MQTT contract for the ESP32
     │   └── systemd/               autostart units
-    └── esp32/                 ⚠ still the old Minecraft firmware
+    └── esp32/                 robot firmware (node_robot.h) + old Minecraft nodes
 ```
 
 ---

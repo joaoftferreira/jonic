@@ -1,143 +1,119 @@
-# 04 · Wiring & pin maps
+# 04 · Wiring — Eggman's robot
 
-> ⚠ **This document still describes the Minecraft build.** The Sonic ESP32 work
-> (a dual-wheel robot plus switchable lights) has not started; when it does, this
-> page gets rewritten. The Pi, the eyes and the phone remote are already Sonic —
-> see [01-architecture.md](01-architecture.md).
+One ESP32 drives everything: two wheels through a DRV8800 each, a 16-LED
+NeoPixel ring, and a servo that releases the lock on the chest.
 
-Exact pins for each character, matching the firmware. If you wire to different pins, change
-the `#define`s at the top of the matching `software/esp32/src/node_<character>.h` (or
-`software/pi/wolf/mouth.py` for the Wolf) and re-flash.
-
-## Golden rules (read once)
-
-- **Common ground.** Every power supply (ESP32, servo battery, motor supply, LED supply)
-  must share a **GND** connection with the ESP32. Without it, nothing works reliably.
-- **Don't power servos/motors/long LED strips from the ESP32's 3.3 V pin.** Use a separate
-  5 V supply (or the 5 V/`VIN` rail from a USB power bank), grounds tied together.
-- **ESP32 logic is 3.3 V.** Servos, NeoPixels and most relays accept a 3.3 V data/signal line
-  fine in practice. If a long NeoPixel strip looks flaky, add a 3.3→5 V level shifter on the
-  data line and a ~330 Ω resistor in series, plus a 1000 µF cap across the strip's 5 V/GND.
-- **GPIO 34** (used by the Portal reed switch) is **input-only** — fine for a switch, can't
-  drive anything.
+> ⚠ **Wire grounds first and check them twice.** Almost every strange symptom on
+> a build like this — motors twitching, LEDs flickering the wrong colour, the
+> ESP32 rebooting when a wheel starts — is a ground that is not actually shared.
 
 ---
 
-## 🟩 Creeper — ESP32
+## Pin map
 
-Effect: accelerating white flash → servo drives a pin into the central balloon → relay fires
-confetti. Listens on `creeper/explode`.
+These are set in one block at the top of `software/esp32/src/node_robot.h`.
+Change them there if your board is already built differently; nothing else in
+the firmware hard-codes a pin.
 
-| Function | ESP32 pin | Connect to |
-|----------|-----------|-----------|
-| White flash LED(s) | **GPIO 5** | LED(s) + series resistor (~220–330 Ω) → GND. For several LEDs or higher brightness, drive them via a transistor/MOSFET from 5 V. |
-| Pin servo (signal) | **GPIO 13** | servo signal wire |
-| Pin servo (power) | — | servo **V+ → 5 V**, **GND → common GND** |
-| Confetti relay (signal) | **GPIO 12** | relay **IN** |
-| Confetti relay (power) | — | relay **VCC → 5 V**, **GND → common GND**; relay contacts switch the popper's trigger |
+| ESP32 pin | Goes to | Why this pin |
+|-----------|---------|--------------|
+| 25 | DRV8800 #1 **PHASE** — left wheel direction | free, output-capable |
+| 26 | DRV8800 #1 **ENABLE** — left wheel PWM | free, output-capable |
+| 32 | DRV8800 #2 **PHASE** — right wheel direction | free, output-capable |
+| 33 | DRV8800 #2 **ENABLE** — right wheel PWM | free, output-capable |
+| 27 | both drivers' **nSLEEP** | one pin powers both H-bridges down |
+| 4 | NeoPixel ring **DIN** | free, no boot role |
+| 14 | lock servo **signal** | free, output-capable |
 
-Tuning: `PIN_REST` / `PIN_STAB` angles in `node_creeper.h`. **Dry-run the servo sweep with no
-balloon mounted first**, then arm a balloon.
-
----
-
-## 🟪 Enderman — ESP32
-
-Effect: belly ring lights a solid, portal-chosen color + eyes light while "on".
-Listens on `enderman/activate` (`on`/`off`) and `enderman/color` (`#RRGGBB`, retained).
-
-| Function | ESP32 pin | Connect to |
-|----------|-----------|-----------|
-| Belly: NeoPixel 16-ring (data) | **GPIO 4** | ring **DIN** (add ~330 Ω in series) |
-| Belly ring (power) | — | ring **5 V** (external supply, ~1 A) + **GND → common GND**; ~1000 µF cap across 5 V/GND |
-| Eyes: 2 white LEDs | **GPIO 5** | LEDs + resistor → GND (both eyes can share this pin) |
-
-The physical chest key hangs in the lit belly so the kids can grab it.
+**Pins deliberately avoided.** GPIO 6–11 are wired to the flash chip and using
+them bricks the board until you reflash. GPIO 34–39 are input only, with no
+pull-ups and no output drivers at all. GPIO 0, 2, 12 and 15 are strapping pins
+that decide how the ESP32 boots; a motor driver holding one at the wrong level
+at power-up stops the board starting.
 
 ---
 
-## 🟫 Portal — ESP32 + H-bridge + DC motor
+## The wheels (DRV8800 × 2)
 
-Effect: frame glows purple, then a DC motor winds a string that pulls the door latch open.
-Listens on `portal/open`.
+The DRV8800 takes direction and speed as two separate signals, which is why
+each motor needs two ESP32 pins.
 
-**Motor via the H-bridge** (one channel — e.g. an L298N-style board):
+| DRV8800 pin | Connect to |
+|-------------|-----------|
+| PHASE | ESP32 25 (left) / 32 (right) — HIGH is one way, LOW the other |
+| ENABLE | ESP32 26 (left) / 33 (right) — the PWM that sets speed |
+| nSLEEP | ESP32 27, both drivers together |
+| VM, GND | the **motor battery**, not the ESP32's 5 V |
+| OUT+, OUT− | the motor |
+| nFAULT | leave unconnected, or to a spare input if you want fault reporting |
 
-| Function | ESP32 pin | H-bridge |
-|----------|-----------|----------|
-| Direction A | **GPIO 25** | IN1 |
-| Direction B | **GPIO 26** | IN2 |
-| Speed/enable (PWM) | **GPIO 27** | ENA |
-| — | — | motor supply → H-bridge VS/12V in; **H-bridge GND → common GND**; motor leads → OUT1/OUT2 |
+**Power.** Motors must have their own supply. Running them off the same
+regulator as the ESP32 browns it out the moment a wheel stalls, and the board
+resets mid-party. Join the two grounds at exactly one point, near the drivers.
 
-**Frame edge-glow** (flexible NeoPixel strip, ~20 px):
+Put a **100 µF or larger electrolytic across VM and GND** at each driver, close
+to the chip, and a small ceramic across each motor's own terminals. Brushed
+motors are electrically noisy and this is what stops that noise reaching the
+NeoPixels and the WiFi.
 
-| Function | ESP32 pin | Connect to |
-|----------|-----------|-----------|
-| Strip (data) | **GPIO 4** | strip **DIN** |
-| Strip (power) | — | strip **5 V** + **GND → common GND** |
-
-**Optional cube sensor** (reed switch — currently read but not acted on):
-
-| Function | ESP32 pin | Connect to |
-|----------|-----------|-----------|
-| Reed switch | **GPIO 34** (input-only) | switch between GPIO 34 and GND; firmware uses `INPUT_PULLUP`; magnet in the obsidian cube |
-
-Tuning: `PULL_MS` in `node_portal.h` controls how long the motor runs to pull the latch.
-**Tune with the latch string disconnected first**, then connect and adjust so it reliably
-releases without over-winding.
+**If a wheel turns the wrong way**, swap that motor's two wires. Do not
+compensate in software; the code assumes PHASE HIGH is forward on both sides.
 
 ---
 
-## 🐉 Ender Dragon — ESP32
+## The NeoPixel ring (16 LEDs)
 
-Effect: glowing core flares to white then dies; a servo catch drops the obsidian cube.
-Listens on `dragon/destroy`.
+| Ring pin | Connect to |
+|----------|-----------|
+| DIN | ESP32 4, through a **330 Ω resistor** in series, as close to the ring as possible |
+| 5 V | the 5 V supply |
+| GND | common ground |
 
-| Function | ESP32 pin | Connect to |
-|----------|-----------|-----------|
-| Core: NeoPixel 8-ring (data) | **GPIO 4** | ring **DIN** |
-| Core ring (power) | — | ring **5 V** + **GND → common GND** |
-| Catch servo (signal) | **GPIO 13** | servo signal |
-| Catch servo (power) | — | servo **V+ → 5 V**, **GND → common GND** |
+Add a **1000 µF capacitor across the ring's 5 V and GND**. Without it the
+inrush when all sixteen LEDs jump to white can glitch the first pixel or reset
+the board.
 
-Tuning: `CATCH_CLOSED` holds the cube, `CATCH_OPEN` releases it (`node_dragon.h`). The dragon
-hangs from the ceiling on a string so it can circle.
+**Brightness is capped in firmware at 60 of 255** (`RING_BRIGHTNESS`). Sixteen
+LEDs at full white draw close to an amp by themselves, which is more than most
+USB supplies will give and enough to brown out the ESP32. A quarter brightness
+still reads as bright white on a costume. Raise it only if you have measured
+your supply.
 
----
-
-## 🐺 Wolf — Raspberry Pi (not an ESP32)
-
-The Wolf is driven directly by the brain Pi: the LCD is its eyes, the amplifier/speaker is
-its voice, and one servo is its mouth.
-
-| Function | Pi pin | Connect to |
-|----------|--------|-----------|
-| Mouth servo (signal) | **GPIO 18** (BCM) | servo signal |
-| Mouth servo (power) | — | servo **V+ → 5 V**, **GND → common GND with the Pi** |
-| Eyes | — | LCD via HDMI (the pygame app draws on it) |
-| Voice | — | amplifier + speakers via the Pi's audio out |
-
-The servo uses hardware PWM through `pigpio` (`pigpiod` must be running — see
-[02-raspberry-pi-setup.md](02-raspberry-pi-setup.md)). Change the pin in
-`software/pi/wolf/mouth.py` if needed.
+The ESP32's 3.3 V data line is marginally below what a 5 V NeoPixel expects. It
+usually works, and the 330 Ω resistor helps. If the first LED misbehaves, either
+run the ring from 4.5 V or add a level shifter on the data line.
 
 ---
 
-## Pin reuse across boards — is that a bug?
+## The lock servo
 
-No. The Creeper, Enderman, Portal and Dragon are **separate ESP32 boards**, so reusing
-GPIO 4 / 5 / 13 across them is fine — each board only runs its own character's firmware.
+| Servo wire | Connect to |
+|------------|-----------|
+| signal (usually orange or white) | ESP32 14 |
+| + (red) | 5 V supply — **not** the ESP32's 3.3 V pin |
+| − (brown or black) | common ground |
 
-## Per-character power summary
+The firmware drives it to `LOCK_CLOSED_DEG` (0°) at boot and to
+`LOCK_OPEN_DEG` (90°) on **OPEN**. If your latch needs more or less travel,
+change those two constants; if it moves the wrong way, swap the two values
+rather than remounting the horn.
 
-| Character | Compute | Extra supply needed |
-|-----------|---------|---------------------|
-| Creeper | ESP32 (USB power bank) | 5 V for servo + relay/popper |
-| Enderman | ESP32 (USB power bank) | 5 V for the 16-ring (~1 A) |
-| Portal | ESP32 (USB power bank) | motor supply for the H-bridge + 5 V for the strip |
-| Dragon | ESP32 (USB power bank) | 5 V for the 8-ring + servo |
-| Wolf | Raspberry Pi | 5 V for the mouth servo |
+Fit the horn with the latch **closed** and the servo already at 0°, or the
+first command will slam it against its end stop.
 
-Charge every power bank the night before (it's on the party-day checklist in
-[05-operation-runbook.md](05-operation-runbook.md)).
+---
+
+## Order to build and test in
+
+Test each stage before adding the next. Debugging all three at once is what
+costs a day.
+
+1. **ESP32 alone.** Flash it, watch the serial monitor at 115200, confirm it
+   joins WiFi and its pill goes green on the phone.
+2. **Servo only.** Press OPEN and Re-arm. Check the travel before it is
+   attached to anything that can jam.
+3. **Ring only.** Lights on, lights off.
+4. **Wheels, robot on a stand with the wheels off the ground.** Check each
+   direction before it can drive into anything. Forward should move both wheels
+   the same way; left and right should spin them opposite ways.
+5. **On the floor**, with the speed slider low, then raise it.

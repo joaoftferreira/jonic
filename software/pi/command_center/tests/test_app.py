@@ -172,3 +172,54 @@ def test_status_reports_a_recently_heard_node_as_up(client, appmod):
     import time
     appmod._last_seen["robot"] = time.time()
     assert client.get("/status").get_json()["nodes"]["robot"] is True
+
+
+# --- the robot -------------------------------------------------------------
+
+@pytest.mark.parametrize("button_id,payload", [
+    ("robot_forward", "forward"), ("robot_back", "back"),
+    ("robot_left", "left"), ("robot_right", "right"), ("robot_stop", "stop"),
+])
+def test_drive_publishes_unretained(client, appmod, button_id, payload):
+    client.post("/fire/" + button_id)
+    appmod._client.publish.assert_called_once_with(
+        "robot/drive", payload, qos=1, retain=False)
+
+
+def test_lights_and_lock_publish_retained(client, appmod):
+    client.post("/fire/lock_open")
+    appmod._client.publish.assert_called_once_with(
+        "robot/lock", "open", qos=1, retain=True)
+
+
+def test_speed_publishes_retained_as_a_plain_integer(client, appmod):
+    resp = client.post("/robot/speed", json={"value": {"speed": 80}})
+    assert resp.get_json()["value"] == {"speed": 80.0}
+    appmod._client.publish.assert_called_with(
+        "robot/speed", "80", qos=1, retain=True)
+
+
+def test_speed_is_clamped_not_rejected(client, appmod):
+    from robot import settings
+    resp = client.post("/robot/speed", json={"value": {"speed": 999}})
+    assert resp.get_json()["value"]["speed"] == settings.LIMITS["speed"][1]
+
+
+def test_speed_only_reaches_disk_when_asked(client, appmod, tmp_path, monkeypatch):
+    from robot import settings
+    path = tmp_path / "robot_settings.json"
+    monkeypatch.setattr(settings, "DEFAULT_PATH", path)
+    client.post("/robot/speed", json={"value": {"speed": 70}})
+    assert not path.exists()
+    client.post("/robot/speed", json={"value": {"speed": 70}, "persist": True})
+    assert json.loads(path.read_text())["speed"] == 70
+
+
+def test_speed_rejects_a_non_object_body(client):
+    assert client.post("/robot/speed", json=[1, 2]).status_code == 400
+
+
+def test_the_remote_page_offers_the_drive_pad_and_the_lock(client):
+    body = client.get("/").get_data(as_text=True)
+    for token in ("robot_forward", "robot_stop", "lock_open", "robot-speed"):
+        assert token in body

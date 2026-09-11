@@ -48,6 +48,21 @@ fi
 
 sudo apt-get install -y -qq python3-flask python3-paho-mqtt curl ${CHROMIUM_PKG}
 
+# The broker, for the ESP32 robot. The eyes never need it and never wait for
+# it, but the robot's drive, lights and lock all ride on it.
+say "Installing the MQTT broker"
+sudo apt-get install -y -qq mosquitto mosquitto-clients
+sudo tee /etc/mosquitto/conf.d/sonic.conf >/dev/null <<'CONF'
+listener 1883 0.0.0.0
+allow_anonymous true
+# Keep retained messages across a broker restart, so a robot that reboots
+# still learns the tuned speed and the state of its lights and lock.
+persistence true
+persistence_location /var/lib/mosquitto/
+CONF
+sudo systemctl enable --now mosquitto
+sudo systemctl restart mosquitto
+
 # flask-sock is not packaged for Raspberry Pi OS. On Debian bookworm and newer
 # pip refuses to touch the system environment without this flag.
 if python3 -c 'import flask_sock' 2>/dev/null; then

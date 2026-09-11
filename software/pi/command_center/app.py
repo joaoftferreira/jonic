@@ -16,11 +16,13 @@ import paho.mqtt.client as mqtt
 from flask import Flask, jsonify, render_template, request
 from flask_sock import Sock
 
+from command_center import commands
 from command_center.commands import BUTTONS, button
 from command_center.hub import WebSocketHub
 from common import mqtt_contract as c
 from eyes import animations, calibration, emeralds
 from eyes import geometry
+from robot import settings as robot_settings
 
 BROKER = "127.0.0.1"      # the broker runs on this same Pi
 
@@ -32,6 +34,7 @@ sock = Sock(app)
 
 hub = WebSocketHub()
 _calibration = calibration.load()
+_robot = robot_settings.load()
 _last_seen = {}           # node -> epoch seconds of its last heartbeat
 
 
@@ -45,12 +48,20 @@ _client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 def _on_connect(client, userdata, flags, reason_code, properties):
     for node in c.NODES:
         client.subscribe(c.heartbeat_topic(node))
+    # Re-assert the stored speed whenever we (re)connect, so the broker always
+    # holds the value the operator last tuned.
+    _publish_robot_speed()
 
 
 def _on_message(client, userdata, msg):
     parts = msg.topic.split("/")
     if len(parts) == 3 and parts[0] == "system" and parts[1] == "heartbeat":
         _last_seen[parts[2]] = time.time()
+
+
+def _publish_robot_speed():
+    """Retained, so a robot that reboots comes back at the tuned speed."""
+    _client.publish(c.ROBOT_SPEED, str(int(_robot["speed"])), qos=1, retain=True)
 
 
 def start_mqtt(broker=BROKER):
@@ -87,9 +98,12 @@ def ws_endpoint(ws):
 def index():
     return render_template(
         "index.html",
-        buttons=BUTTONS,
+        groups=commands.grouped(),
         calibration=_calibration,
         limits=calibration.LIMITS,
+        robot=_robot,
+        robot_limits=robot_settings.LIMITS,
+        drive_repeat_ms=c.DRIVE_REPEAT_MS,
     )
 
 
@@ -159,6 +173,24 @@ def post_calibration():
     _calibration = value
     delivered = hub.broadcast({"type": "calibration", "value": value})
     return jsonify(ok=True, value=value, persisted=persist, delivered=delivered)
+
+
+@app.route("/robot/speed", methods=["POST"])
+def post_robot_speed():
+    """Set motor power. Published retained so the robot keeps it across a
+    reboot; only a Save also writes it to the Pi's disk."""
+    global _robot
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        return jsonify(ok=False, error="expected a JSON object"), 400
+
+    value = robot_settings.sanitize(body.get("value", body))
+    persist = bool(body.get("persist"))
+    if persist:
+        value = robot_settings.save(robot_settings.DEFAULT_PATH, value)
+    _robot = value
+    _publish_robot_speed()
+    return jsonify(ok=True, value=value, persisted=persist)
 
 
 @app.route("/status")
