@@ -1,51 +1,116 @@
 # 02 · Raspberry Pi setup (the brain and the face)
 
-The Pi runs two things: the **command center** (Flask, serves the phone remote and the eyes
+The Pi runs two things: the **command center** (Flask, serving the phone remote and the eyes
 page) and **Chromium in kiosk mode** showing the eyes fullscreen on the 7" LCD. The MQTT
 broker is optional until the ESP32 robot exists.
 
-> Estimated time: ~30 min, with a screen and keyboard on the Pi or over SSH.
+Once SSH is on, the whole install is one command from your laptop.
 
 ---
 
 ## 0. Prerequisites
 
-- Raspberry Pi with Raspberry Pi OS **with desktop** — the eyes need a graphical session.
-- The Pi on your home WiFi, the same network your phone uses.
-- This repo cloned to `/home/kam/EProjects/jonic` on the Pi.
+- A Raspberry Pi running Raspberry Pi OS **with desktop** — the eyes need a graphical
+  session.
+- The Pi on the same WiFi as your laptop and your phone.
+- **SSH enabled on the Pi.** A fresh image ships with it off. At the Pi, once:
 
-> If your Pi username or path differs from `kam`, update `WorkingDirectory=` and `User=` in
-> `software/pi/systemd/sonic-command-center.service` before installing it in step 4.
+  ```bash
+  sudo systemctl enable --now ssh
+  ```
+
+  Or `sudo raspi-config` → *Interface Options → SSH → Enable*.
+
+- Your laptop's SSH key authorized on the Pi. From your laptop, once:
+
+  ```bash
+  ssh-copy-id kam@raspberrypi.local
+  ```
+
+  It asks for the Pi's password once and copies your **public** key. Nothing secret is
+  stored afterwards and nothing goes into this repo.
+
+> Your private key stays in `~/.ssh` on your laptop. Public keys are not secrets — there is
+> one committed in `scripts/pi-enable-ssh.sh` on purpose.
 
 ---
 
-## 1. Find (and ideally fix) the Pi's IP address
+## 1. Find (and ideally fix) the Pi's address
 
 ```bash
-hostname -I        # e.g. 192.168.1.50
+ssh kam@raspberrypi.local hostname -I      # e.g. 192.168.2.106
 ```
 
-This is the address you open on your phone. **Strongly recommended:** give the Pi a static
-or DHCP-reserved address so it does not move between reboots.
+This is the address you open on your phone. **Strongly recommended:** give the Pi a DHCP
+reservation so it does not move between reboots, then write it on a sticker and put it on
+the back of Sonic's head.
 
 ---
 
-## 2. Install the dependencies
+## 2. Install everything
+
+From your laptop, in the repo:
 
 ```bash
-sudo apt update
-sudo apt install -y python3-flask python3-paho-mqtt chromium-browser
-sudo pip install --break-system-packages flask-sock
+scripts/deploy-to-pi.sh                  # defaults to kam@raspberrypi.local
+scripts/deploy-to-pi.sh kam@192.168.2.106   # or name the target
 ```
 
-- **python3-flask** — the web server.
-- **python3-paho-mqtt** — the link to the ESP32, later.
-- **chromium-browser** — draws the eyes.
-- **flask-sock** — the WebSocket. It is not packaged for Raspberry Pi OS, so it comes from
-  pip. On Debian trixie `pip` is "externally managed", hence `--break-system-packages`; it
-  pulls in `simple-websocket` with it.
+It copies the repo to `~/EProjects/jonic` on the Pi over your existing SSH key and then runs
+`scripts/pi-provision.sh` there, which:
 
-Install the broker too if the ESP32 work has started:
+- installs `python3-flask`, `python3-paho-mqtt`, `curl` and Chromium via apt;
+- installs `flask-sock` via pip, since Raspberry Pi OS does not package it;
+- installs and starts the **command center** as a system service, rewriting its `User=` and
+  `WorkingDirectory=` to match this Pi;
+- installs the **eyes kiosk** as a *user* service and wires it into whichever desktop this
+  release uses (labwc, wayfire or LXDE);
+- waits for the server and prints the addresses.
+
+Both scripts are idempotent, so re-run the deploy as often as you like. After a code change
+you usually only want:
+
+```bash
+scripts/deploy-to-pi.sh --code-only      # push code, restart, skip apt/pip
+```
+
+The Pi holds **no credentials**: the code arrives by rsync from your laptop, so it never
+needs a GitHub key, a token or a stored password.
+
+> **Why a user service for the kiosk.** Chromium must start *inside* the desktop's Wayland
+> session. A system service starts before the compositor exists and the screen stays blank.
+> The provision script adds a line to the desktop's autostart that hands the session
+> environment to `systemd --user` and starts the kiosk.
+
+**Finish with a reboot** so the desktop runs that autostart line for the first time, and set
+`sudo raspi-config` → *System Options → Boot / Auto Login → **Desktop Autologin***, and
+*Display Options → Screen Blanking → **off***.
+
+---
+
+## 3. Check it
+
+```bash
+ssh kam@raspberrypi.local systemctl status sonic-command-center
+ssh kam@raspberrypi.local 'systemctl --user status sonic-eyes-kiosk'
+ssh kam@raspberrypi.local 'journalctl -u sonic-command-center -e --no-pager'
+```
+
+Open `http://<pi-ip>:8080/eyes` in any browser to see the face, and `http://<pi-ip>:8080` on
+your phone for the remote. The `eyes` pill goes green once the LCD page is connected.
+
+On the eyes page itself you can test without a phone: **B** or **space** blinks, **←** and
+**→** look, **↓** looks ahead.
+
+Run the test suite on the Pi if you want to be thorough:
+
+```bash
+ssh kam@raspberrypi.local 'cd EProjects/jonic/software/pi && python3 -m pytest -q'
+```
+
+---
+
+## 4. The MQTT broker (only once the ESP32 exists)
 
 ```bash
 sudo apt install -y mosquitto mosquitto-clients
@@ -56,76 +121,8 @@ CONF
 sudo systemctl enable --now mosquitto
 ```
 
-This is an unauthenticated broker on your private home network. Fine for a party, not for
-the public internet.
-
----
-
-## 3. Quick manual test (before autostart)
-
-```bash
-cd /home/kam/EProjects/jonic/software/pi
-python3 -m command_center.app
-```
-
-Open `http://<pi-ip>:8080/eyes` in any browser: you should see Sonic's eyes fill the window.
-Open `http://<pi-ip>:8080` on your phone and press the buttons; the eyes respond instantly.
-The `eyes` pill at the top of the remote goes green once the face page is connected.
-
-You can also drive the eyes page straight from its own keyboard, which is handy on the
-bench: **B** or **space** blinks, **←** and **→** look, **↓** looks ahead.
-
-Run the test suite from the same directory:
-
-```bash
-python3 -m pytest -q
-```
-
----
-
-## 4. Autostart on boot
-
-Power the Pi, everything comes up, no laptop needed.
-
-The **command center** is a plain network daemon, so it is a normal **system** service. The
-**kiosk** draws on the LCD, so it must start *inside* the desktop's Wayland session — a
-system service would start before the compositor exists and the screen would stay blank. So
-Chromium runs as a **user** service that labwc launches once it is up.
-
-**1. Command center (system service):**
-
-```bash
-sudo cp /home/kam/EProjects/jonic/software/pi/systemd/sonic-command-center.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now sonic-command-center
-```
-
-**2. Eyes kiosk (user service, launched by the compositor):**
-
-```bash
-mkdir -p ~/.config/systemd/user
-cp /home/kam/EProjects/jonic/software/pi/systemd/sonic-eyes-kiosk.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-
-mkdir -p ~/.config/labwc
-cat >> ~/.config/labwc/autostart <<'AUTOSTART'
-systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE DISPLAY
-systemctl --user restart sonic-eyes-kiosk.service
-AUTOSTART
-```
-
-**3. Boot to the desktop and stop the screen blanking.** `sudo raspi-config` →
-*System Options → Boot / Auto Login → **Desktop Autologin***, and
-*Display Options → Screen Blanking → **off***. Then `sudo reboot`.
-
-After the reboot, with nothing attached: the eyes are on the LCD and the remote is at
-`http://<pi-ip>:8080`.
-
-```bash
-systemctl status sonic-command-center      # system service
-systemctl --user status sonic-eyes-kiosk   # user service, as the desktop user
-journalctl -u sonic-command-center -e
-```
+An unauthenticated broker on your private home network. Fine for a party, not for the
+public internet. The eyes do not need it and never wait for it.
 
 ---
 
@@ -135,13 +132,15 @@ Do this once the LCD is actually mounted in Sonic's head, because the point is t
 mechanical opening.
 
 1. Open the remote on your phone and expand **🔧 Eye calibration**.
-2. Drag **Width** and **Height** until the white of the eyes fills the frame's opening. The
-   LCD updates as you drag.
+2. Drag **Width** and **Height** until the white of the eyes fills the opening. The LCD
+   updates as you drag.
 3. Use **Move ↔** and **Move ↕** if the opening is not centred on the glass.
 4. Press **Save**. The values persist across reboots, and the eyes page picks them up again
    whenever it reconnects.
 
-**Reset** returns the sliders to a plain centred fit without saving.
+**Reset** returns the sliders to a plain centred fit without saving. The saved file is
+`software/pi/eyes/eyes_calibration.json` on the Pi; it is gitignored, and the deploy script
+will not overwrite it.
 
 ---
 
@@ -149,10 +148,12 @@ mechanical opening.
 
 | Symptom | Likely cause / fix |
 |---------|--------------------|
-| Phone can't reach `:8080` | Phone on a different WiFi band, or the service is not running (`systemctl status sonic-command-center`). |
-| LCD is black | The Pi is not booting to the desktop (enable Desktop Autologin), or the kiosk unit was installed as a *system* service instead of a user one. Check `systemctl --user status sonic-eyes-kiosk`. |
-| Eyes appear but ignore the buttons | The WebSocket is down: a small red dot shows in the corner of the LCD, and the `eyes` pill on the phone is red. Restart the command center. |
-| `No module named flask_sock` | The pip install in step 2 was skipped, or ran as a different user. |
+| `ssh: connect to host ... port 22: Connection refused` | SSH is off on the Pi. Enable it at the Pi (§ 0); it cannot be done remotely. |
+| `ssh` asks for a password every time | `ssh-copy-id` was never run, or was run for a different username. |
+| Phone can't reach `:8080` | Phone on a different WiFi band, or the service is down (`systemctl status sonic-command-center`). |
+| LCD is black | The Pi is not booting to the desktop (enable Desktop Autologin), or the desktop has not run the autostart yet — reboot once after the first deploy. Check `systemctl --user status sonic-eyes-kiosk`. |
+| Eyes appear but ignore the buttons | The WebSocket is down: a small red dot shows in the corner of the LCD and the `eyes` pill is red. Restart the command center. |
+| `No module named flask_sock` | The pip step failed. Re-run the deploy and read its output. |
 | Eyes come back the wrong size after a reboot | The calibration was adjusted but never **Save**d. |
 | `robot` pill is red | Expected until the ESP32 exists. Nothing else depends on it. |
-| Screen dims mid-party | Screen blanking is still on; see step 4.3. |
+| Screen dims mid-party | Screen blanking is still on; see § 2. |

@@ -10,25 +10,10 @@ PartOf=graphical-session.target
 After=graphical-session.target
 
 [Service]
-# --kiosk          fullscreen, no chrome, no address bar
-# --noerrdialogs, --disable-session-crashed-bubble
-#                  never show a dialog over the character's face after a
-#                  power cut, which is how the Pi is normally switched off
-# --check-for-update-interval
-#                  no update nag mid-party
-# --disable-pinch, --overscroll-history-navigation
-#                  the panel is a touchscreen; stop a stray hand from
-#                  zooming or swiping the page away
-ExecStart=/usr/bin/chromium-browser \
-  --kiosk \
-  --noerrdialogs \
-  --disable-infobars \
-  --disable-session-crashed-bubble \
-  --disable-features=Translate \
-  --check-for-update-interval=31536000 \
-  --disable-pinch \
-  --overscroll-history-navigation=0 \
-  http://127.0.0.1:8080/eyes
+# The launcher finds whichever Chromium this Pi OS release ships and waits for
+# the server to answer before opening the page. Keeping the flags in the script
+# means this unit is identical on every Pi.
+ExecStart=/home/kam/EProjects/jonic/scripts/sonic-kiosk.sh
 # The page reconnects its own WebSocket, so a restart here is only needed if
 # Chromium itself dies.
 Restart=always

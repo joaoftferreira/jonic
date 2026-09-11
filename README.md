@@ -59,7 +59,10 @@ jonic/
 ├── art/
 │   └── sonic-eyes.svg             the traced eye artwork — the source of truth
 ├── scripts/
-│   └── extract_eye_geometry.py    regenerates eyes/geometry.py from that SVG
+│   ├── extract_eye_geometry.py    regenerates eyes/geometry.py from that SVG
+│   ├── deploy-to-pi.sh            push the repo to the Pi and install it
+│   ├── pi-provision.sh            the install itself, runs on the Pi
+│   └── sonic-kiosk.sh             launches Chromium on the eyes page
 ├── docs/
 │   ├── 01-architecture.md         system overview + the animation contract
 │   ├── 02-raspberry-pi-setup.md   install, autostart, and calibration
@@ -89,7 +92,15 @@ Then open `http://localhost:8080/eyes` for the face and `http://<your-ip>:8080` 
 phone for the remote. On the eyes page you can also press **B** to blink and the **arrow
 keys** to look around, which saves reaching for a phone while you work.
 
-Setting up the real Pi → **[docs/02-raspberry-pi-setup.md](docs/02-raspberry-pi-setup.md)**.
+Deploying to the real Pi, once SSH is on and your key is authorized:
+
+```bash
+scripts/deploy-to-pi.sh kam@raspberrypi.local
+```
+
+Full setup → **[docs/02-raspberry-pi-setup.md](docs/02-raspberry-pi-setup.md)**. The Pi
+holds no credentials: code travels over your own SSH key, so it never needs a GitHub key or
+a stored password.
 
 ---
 
