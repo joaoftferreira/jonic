@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.pio/
+*.log
+scripts/*.log
+
+# ESP32 secrets — real config lives on disk, use config.h.example as the template
+software/esp32/include/config.h
+
+# Tuned on the Pi to match the physical frame; not the same on any two builds.
+software/pi/eyes/eyes_calibration.json
+.pytest_cache/

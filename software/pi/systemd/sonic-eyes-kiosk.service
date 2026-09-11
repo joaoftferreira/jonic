@@ -1,0 +1,38 @@
+# systemd *user* unit — install to ~/.config/systemd/user/, NOT
+# /etc/systemd/system. A system service starts before the labwc Wayland
+# session exists, so Chromium has no compositor to attach to and the screen
+# stays blank. As a user unit launched from the labwc autostart it runs only
+# after the compositor is up, and inherits WAYLAND_DISPLAY / XDG_RUNTIME_DIR
+# from the graphical session. See docs/02-raspberry-pi-setup.md.
+[Unit]
+Description=Sonic Eyes (Chromium kiosk)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+# --kiosk          fullscreen, no chrome, no address bar
+# --noerrdialogs, --disable-session-crashed-bubble
+#                  never show a dialog over the character's face after a
+#                  power cut, which is how the Pi is normally switched off
+# --check-for-update-interval
+#                  no update nag mid-party
+# --disable-pinch, --overscroll-history-navigation
+#                  the panel is a touchscreen; stop a stray hand from
+#                  zooming or swiping the page away
+ExecStart=/usr/bin/chromium-browser \
+  --kiosk \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --disable-features=Translate \
+  --check-for-update-interval=31536000 \
+  --disable-pinch \
+  --overscroll-history-navigation=0 \
+  http://127.0.0.1:8080/eyes
+# The page reconnects its own WebSocket, so a restart here is only needed if
+# Chromium itself dies.
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

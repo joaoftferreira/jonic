@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Sonic Control</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+
+<h1>💙 Sonic Control</h1>
+<div id="status"></div>
+
+<div class="grid">
+  {% for b in buttons %}
+  <button class="action" data-id="{{ b.id }}">{{ b.label }}</button>
+  {% endfor %}
+</div>
+
+<details id="calibration">
+  <summary>🔧 Eye calibration</summary>
+  <p class="hint">Drag a slider and watch the screen. Save keeps it across restarts.</p>
+
+  {% for field, label, step in [
+       ('scale_x', 'Width',     0.01),
+       ('scale_y', 'Height',    0.01),
+       ('offset_x', 'Move ↔',   1),
+       ('offset_y', 'Move ↕',   1)] %}
+  <label class="slider">
+    <span class="name">{{ label }}</span>
+    <input type="range" name="{{ field }}"
+           min="{{ limits[field][0] }}" max="{{ limits[field][1] }}"
+           step="{{ step }}" value="{{ calibration[field] }}">
+    <output for="{{ field }}">{{ calibration[field] }}</output>
+  </label>
+  {% endfor %}
+
+  <div class="row">
+    <button id="cal-reset" class="minor">Reset</button>
+    <button id="cal-save" class="minor save">Save</button>
+  </div>
+</details>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

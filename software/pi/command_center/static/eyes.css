@@ -1,0 +1,44 @@
+/* The panel is the character's face: nothing on screen but the eyes. */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  cursor: none;           /* no pointer on the LCD */
+}
+
+#stage {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+#contour { fill: #ffffff; }
+.iris    { fill: #000000; }
+.shine   { fill: #ffffff; }
+
+/* Gaze latches: the eyes hold a look until the next command, so a transition
+   is a better fit here than a keyframed animation. */
+.eye {
+  transform: translateX(0);
+  transition: transform 180ms ease-out;
+}
+
+/* Parked above the face until a blink runs. The exact distance depends on the
+   contour's height, so eyes.js sets it; this keeps the lid clear of the face
+   during the moment before that script runs. */
+#lid { transform: translateY(-1000px); }
+
+#offline {
+  position: fixed;
+  right: 6px;
+  bottom: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0392b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eye { transition-duration: 1ms; }
+}

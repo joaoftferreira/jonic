@@ -1,0 +1,8 @@
+#pragma once
+// Copy this file to config.h and fill in your real values:
+//   cp config.h.example config.h
+// config.h is git-ignored so credentials are never committed.
+#define WIFI_SSID     "YOUR_HOME_SSID"       // 2.4 GHz network (ESP32 can't use 5 GHz)
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+#define MQTT_BROKER   "192.168.1.50"         // <- the Pi's LAN IP (the MQTT broker)
+#define MQTT_PORT     1883

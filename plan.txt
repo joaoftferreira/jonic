@@ -1,0 +1,42 @@
+I want to do a birthday party treasure hunt for 6 years old inspired in minecraft.
+I'm thinking about several of the main characters which you interface with in the game.
+
+The players will get clues from each of them until they reach the final destination. A treasure chest with suits inside. 
+I want these characters to do something interactive.
+Given I have only around 10 days to do this I can't go crazy. will start with getting the physical things built and animate them at the end if there's time.
+
+Treasure hunt sequence (location1/location2 - location2 in case of bad weather): 
+1) Player gets a 1st clue -> go to hyve (outside / kitchen) 
+2) Bee brings a clue -> find a bone (basement)
+3) Bone in a skeleton -> Give it to wolf (living room)
+4) Bone to wolf (wolf in living room, part of birthday decoration hiding in plain site)
+5) Wolf gives clue -> (Go to creeper, living room)
+7) creeper explodes, leaves clue -> Go to ender dragon (sleeping room)
+8) Ender dragon has to be destroyed to give a piece of Obsidian.
+9) Piece of obsidian fits to an incomplete portal. Once complete it opens. (portal in top floor)
+10) Behind the open portal, a chest with the gifts and a enderman. (parents room)
+11) Key from enderman, opens the chest (parents room)
+
+
+Character animation:
+- Ender dragon is a paper dragon that is flying in circles tied to the ceiling, when it gets destroyed it drops the cube of obsidian.
+- Portal is just a door with purple curtain and cubes surrounding. a cube is missing and when added, the door opens. ()
+- Enderman holds the key to the chest, eyes are iluminated, it has the key in his belly also iluminated.
+- Chest is a normal wooden chest, normal locekr
+- creeper is a construction of green balloon, small water baloons glued to a central "pillar" ballon. There's a little gadget in the base that illuminates the creeper, it flashes white and then it blows the central balloon, by exploding the central, idea is that it blows all others away.
+Also can include a confetti cannon.
+- wolf is a cardboard box construction, glued with white carpet to be flufy. it has some speakers to bark and be hungry. It has a lcd screen operated from a raspberry that will be in full screen and just do some animations for the eyes. I need help here to develop a little app that is deploying on the raspberry terminal and runs the wolf. does eyes, mouth and sound.
+- eyes: mostly just looks around random, from time to time it gets hungry and the eyes get hungry. Turn in to loving eyes with red hearths when bone is given.
+- sound: mostly quiet, time to time barks and gets hungry (sync with eyes)
+- Mouth: just a little PWm servo, closed, opens when the bone is given.
+- Bee: a small quadcopter with a bee part around it. The quad has a wifi camera and I have a jetson, as part of an extended project I want to have a autonomous guidance of the bee. This is a very last step.
+
+Command center:
+- I want to have a command center where I control the flow and character animation. for example, press a button for the wold  to bark or press another for him to enter the loving mode. This can all live as a webserver in the raspberry inside the wolf, connected to my wifi.
+- 
+
+HW 
+- Wolf body cardboard + templates + cut laser
+- Bee body + wings
+- creeper body + ballon blow up and automated confetti gun
+- skeleton + bone

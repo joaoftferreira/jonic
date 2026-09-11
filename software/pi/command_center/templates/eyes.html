@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonic eyes</title>
+<link rel="stylesheet" href="/static/eyes.css">
+</head>
+<body>
+
+<svg id="stage" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <!-- Everything that moves is clipped to the eye outline, so an iris at
+         full gaze and the eyelid mid-blink both stop exactly at the white. -->
+    <clipPath id="contour-clip" clipPathUnits="userSpaceOnUse">
+      <path d="{{ geometry.CONTOUR_PATH }}"/>
+    </clipPath>
+  </defs>
+
+  <!-- #fit carries the fit-to-panel scale and the calibration; set from JS. -->
+  <g id="fit">
+    <path id="contour" d="{{ geometry.CONTOUR_PATH }}"/>
+
+    <g clip-path="url(#contour-clip)">
+      <!-- One group per eye. The two travel different distances, because the
+           iris heading for the notch between them has far less room than the
+           one heading away from it. -->
+      {% for iris, shine in eyes %}
+      <g class="eye">
+        <ellipse class="iris" cx="{{ iris.cx }}" cy="{{ iris.cy }}"
+                 rx="{{ iris.rx }}" ry="{{ iris.ry }}"
+                 transform="rotate({{ iris.rot }} {{ iris.cx }} {{ iris.cy }})"/>
+        <ellipse class="shine" cx="{{ shine.cx }}" cy="{{ shine.cy }}"
+                 rx="{{ shine.rx }}" ry="{{ shine.ry }}"
+                 transform="rotate({{ shine.rot }} {{ shine.cx }} {{ shine.cy }})"/>
+      </g>
+      {% endfor %}
+
+      <!-- The eyelid starts parked above the face and drops through it. -->
+      <rect id="lid"
+            x="{{ geometry.CONTOUR_BBOX[0] - 10 }}"
+            y="{{ geometry.CONTOUR_BBOX[1] - 10 }}"
+            width="{{ geometry.CONTOUR_BBOX[2] + 20 }}"
+            height="{{ geometry.CONTOUR_BBOX[3] + 20 }}"
+            fill="{{ lid_color }}"/>
+    </g>
+  </g>
+</svg>
+
+<!-- Only shown while the WebSocket is down, as a setup aid. -->
+<div id="offline" hidden></div>
+
+<script id="eyes-data" type="application/json">
+{{ {
+  "bbox": geometry.CONTOUR_BBOX,
+  "center": geometry.CONTOUR_CENTER,
+  "gazeTravel": gaze_travel,
+  "gazeInnerRatio": gaze_inner_ratio,
+  "calibration": calibration,
+} | tojson }}
+</script>
+<script src="/static/eyes.js"></script>
+</body>
+</html>

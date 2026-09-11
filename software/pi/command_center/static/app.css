@@ -1,0 +1,86 @@
+/* Sonic palette: his blue, ring gold, shoe red, on a dark panel that stays
+   readable outdoors on a phone. */
+:root {
+  --blue: #1f4fd8;
+  --blue-dark: #163a9e;
+  --gold: #ffcc00;
+  --red: #d92b2b;
+  --ink: #12141a;
+  --panel: #1e222b;
+  --text: #eef1f6;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--text);
+}
+
+h1 {
+  margin: 0;
+  padding: 12px;
+  font-size: 18px;
+  text-align: center;
+  background: var(--blue);
+}
+
+#status {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 8px;
+}
+
+.pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  background: #555;
+}
+.pill.up { background: #2e7d32; }
+.pill.down { background: var(--red); }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+}
+
+button {
+  font-size: 20px;
+  padding: 24px 8px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--blue);
+  touch-action: manipulation;   /* no double-tap zoom on a mistap */
+}
+button:active { transform: scale(.97); background: var(--blue-dark); }
+button.fired { background: #2e7d32; }
+
+#calibration {
+  margin: 4px 12px 24px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--panel);
+}
+#calibration summary { font-size: 16px; padding: 4px 0; }
+.hint { font-size: 13px; color: #9aa3b2; margin: 6px 0 12px; }
+
+.slider {
+  display: grid;
+  grid-template-columns: 68px 1fr 56px;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+.slider .name { font-size: 14px; }
+.slider output { font-size: 13px; text-align: right; color: var(--gold); }
+.slider input[type=range] { width: 100%; accent-color: var(--gold); }
+
+.row { display: flex; gap: 10px; margin-top: 16px; }
+button.minor { flex: 1; font-size: 16px; padding: 14px 8px; background: #39404e; }
+button.minor.save { background: var(--gold); color: #221c00; font-weight: 700; }

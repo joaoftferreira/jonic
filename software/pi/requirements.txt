@@ -1,0 +1,13 @@
+# On Raspberry Pi OS install what you can via apt (see
+# docs/02-raspberry-pi-setup.md): python3-flask, python3-paho-mqtt.
+#
+# flask-sock is not packaged for Raspberry Pi OS, so it and its simple-websocket
+# dependency come from pip:
+#
+#     sudo pip install --break-system-packages flask-sock
+#
+# This file is for off-Pi/dev use.
+Flask==3.0.3
+flask-sock==0.7.0
+paho-mqtt==2.1.0
+pytest==8.2.0
