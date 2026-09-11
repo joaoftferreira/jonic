@@ -157,3 +157,28 @@ will not overwrite it.
 | Eyes come back the wrong size after a reboot | The calibration was adjusted but never **Save**d. |
 | `robot` pill is red | Expected until the ESP32 exists. Nothing else depends on it. |
 | Screen dims mid-party | Screen blanking is still on; see § 2. |
+| `sudo: a password is required` during deploy | This Pi does not have passwordless sudo. Run `scripts/deploy-to-pi.sh` from a terminal so it can prompt you once. |
+| **LCD shows the desktop, yet the service is "active" and the `eyes` pill is green** | Chromium started, ran the page and opened its WebSocket, but never mapped a window. On this Pi that means `--no-sandbox` is missing from `scripts/sonic-kiosk.sh`. See the note below. |
+| `eglCreateContext ES 3.0 failed`, `CollectGraphicsInfo failed` in the log | Harmless noise. The Pi 3 GPU is OpenGL ES 2.0 only and Chromium probes for ES 3.0. It falls back and the eyes render fine. |
+| ⚡ **"Low voltage warning" on screen** | The power supply is not keeping up. Confirm with `vcgencmd get_throttled`; anything other than `0x0` means it has browned out. A Pi 3 wants a genuine 5 V 2.5 A supply and a short, thick USB cable. Fix this before the party: under-voltage throttles the CPU and can corrupt the SD card. |
+
+### Why the kiosk runs with `--no-sandbox`
+
+Verified on this exact hardware, Raspberry Pi 3 Model B with Raspberry Pi OS trixie and
+labwc. Without the flag, Chromium starts, loads the page and opens its WebSocket to the
+server, so everything downstream looks healthy, but it never maps a window and the panel
+just shows the desktop. It is the difference between a working face and a blank one.
+
+Two related traps found alongside it:
+
+- **`--ozone-platform=wayland`, not `--ozone-platform-hint=auto`.** The auto hint resolves to
+  X11 here even with a Wayland socket present, and Chromium then exits with
+  `Missing X server or $DISPLAY`.
+- **`Restart=on-failure`, not `Restart=always`.** Chromium exits 0 when it hands its URL to
+  an instance that already owns the profile. Restarting on that turns one stray browser into
+  an endless respawn loop; it reached 18 processes and 4 duplicate WebSocket connections
+  before this was fixed. The kiosk also uses its own profile directory so it can never
+  collide with a browser opened by hand.
+
+The security cost is small here: the only page this browser ever loads is our own, served
+from localhost on a private network.

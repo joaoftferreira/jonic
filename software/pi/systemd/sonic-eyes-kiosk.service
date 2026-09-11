@@ -14,10 +14,16 @@ After=graphical-session.target
 # the server to answer before opening the page. Keeping the flags in the script
 # means this unit is identical on every Pi.
 ExecStart=/home/kam/EProjects/jonic/scripts/sonic-kiosk.sh
-# The page reconnects its own WebSocket, so a restart here is only needed if
-# Chromium itself dies.
-Restart=always
+# on-failure, NOT always. Chromium exits 0 when it hands a URL to an instance
+# that already holds the profile, and restarting on that turns a single stray
+# browser into an endless respawn loop. A real crash exits non-zero and is
+# still restarted. The page reconnects its own WebSocket, so nothing else here
+# needs a restart.
+Restart=on-failure
 RestartSec=5
+# Give up rather than thrash if something is genuinely wrong.
+StartLimitIntervalSec=120
+StartLimitBurst=5
 
 [Install]
 WantedBy=graphical-session.target

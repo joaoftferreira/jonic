@@ -40,5 +40,8 @@ if [ "$CODE_ONLY" = 1 ]; then
   ssh "$TARGET" "sudo systemctl restart sonic-command-center && \
                  systemctl --user restart sonic-eyes-kiosk.service 2>/dev/null || true"
 else
-  ssh -t "$TARGET" "bash ~/$DEST/scripts/pi-provision.sh"
+  # -t only when this shell actually has a terminal, so the script works the
+  # same when run by hand and when run from a pipeline.
+  TTY_FLAG=(); [ -t 0 ] && TTY_FLAG=(-t)
+  ssh "${TTY_FLAG[@]}" "$TARGET" "bash ~/$DEST/scripts/pi-provision.sh"
 fi

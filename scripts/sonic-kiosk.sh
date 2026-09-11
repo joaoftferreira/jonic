@@ -10,6 +10,29 @@ set -euo pipefail
 
 URL="${SONIC_EYES_URL:-http://127.0.0.1:8080/eyes}"
 
+# Find the compositor ourselves rather than trusting that something exported it.
+# The desktop's autostart hands its environment to `systemd --user`, but that
+# import is easy to miss: the user manager may have restarted since, or the
+# service may be started by hand over SSH. Without WAYLAND_DISPLAY, Chromium
+# still starts and still loads the page -- it just has no window, so the panel
+# shows the desktop and the fault looks like a rendering bug instead of a
+# missing variable.
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+  for sock in "$XDG_RUNTIME_DIR"/wayland-[0-9]*; do
+    case "$sock" in *.lock) continue ;; esac
+    [ -S "$sock" ] || continue
+    export WAYLAND_DISPLAY="$(basename "$sock")"
+    break
+  done
+fi
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+  echo "sonic-kiosk: no wayland socket in $XDG_RUNTIME_DIR;" \
+       "is the desktop session up?" >&2
+  exit 1
+fi
+echo "sonic-kiosk: using WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
+
 for candidate in chromium-browser chromium; do
   if BROWSER="$(command -v "$candidate")"; then
     break
@@ -27,6 +50,35 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
+# A profile of our own. Without it, launching Chromium while any other
+# Chromium already owns the default profile makes the new process hand its URL
+# to the running one and exit 0 immediately. Under Restart=always that reads as
+# "it stopped, start it again" and the service spins, opening a fresh page --
+# and a fresh WebSocket -- every few seconds.
+PROFILE="${SONIC_KIOSK_PROFILE:-$HOME/.cache/sonic-kiosk}"
+mkdir -p "$PROFILE"
+
+# Clear out a previous kiosk still holding that profile, so a restart is
+# deterministic. Matching on the profile path leaves any browser the operator
+# opened by hand untouched.
+pkill -f -- "--user-data-dir=$PROFILE" 2>/dev/null || true
+sleep 1
+
+# --no-sandbox                REQUIRED on this Pi. Without it Chromium starts,
+#                             runs the page's JavaScript and even opens its
+#                             WebSocket, but never maps a window -- so the
+#                             service looks healthy while the panel shows the
+#                             desktop. Costs little here: the only page ever
+#                             loaded is our own, served from localhost.
+# --test-type                 hides the yellow "unsupported command-line flag"
+#                             infobar that --no-sandbox otherwise puts across
+#                             the top of the character's face
+# --ozone-platform=wayland    explicit, not "hint=auto". On Raspberry Pi OS
+#                             trixie the auto hint resolves to X11 even with a
+#                             Wayland socket present, and Chromium then dies
+#                             with "Missing X server or $DISPLAY" -- but only
+#                             after the service already looks healthy, so the
+#                             panel just shows the desktop
 # --kiosk                     fullscreen, no browser chrome at all
 # --noerrdialogs / --disable-session-crashed-bubble
 #                             never put a dialog over the character's face
@@ -38,6 +90,10 @@ done
 #                             zoom the eyes or swipe the page away
 # --autoplay-policy           sound later, without needing a click first
 exec "$BROWSER" \
+  --user-data-dir="$PROFILE" \
+  --no-sandbox \
+  --test-type \
+  --ozone-platform=wayland \
   --kiosk \
   --noerrdialogs \
   --disable-infobars \

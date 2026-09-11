@@ -17,6 +17,21 @@ say "Repo is at $REPO, running as $PI_USER"
 echo "   OS: ${PRETTY_NAME:-unknown}"
 echo "   Model: $(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo unknown)"
 
+# Ask for sudo once, up front. Raspberry Pi OS does not always grant the first
+# user passwordless sudo, and a cached credential from someone typing `sudo` at
+# the Pi makes it look like it does -- until the next reboot clears the cache
+# and the install dies halfway through.
+say "Checking sudo"
+if sudo -n true 2>/dev/null; then
+  echo "   passwordless"
+elif [ -t 0 ]; then
+  sudo -v
+else
+  echo "   !! sudo needs a password and no terminal is attached." >&2
+  echo "      Run scripts/deploy-to-pi.sh from a terminal so it can prompt." >&2
+  exit 1
+fi
+
 # ---------------------------------------------------------------- packages --
 say "Installing packages"
 sudo apt-get update -qq

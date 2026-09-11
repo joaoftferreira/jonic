@@ -47,12 +47,13 @@ def test_at_full_gaze_the_inner_eye_keeps_its_iris_and_its_shine():
 
 
 def test_the_outer_eye_moves_far_enough_to_read_across_a_room():
-    """On the 7-inch panel the contour spans the full 800 px width, so a unit
-    of travel is about 5.7 px. Anything under ~50 px is not a visible glance."""
+    """The panel is 1024x600 and the contour spans its full width, so a unit of
+    travel is about 7.2 px. Anything under ~64 px is not a visible glance."""
     from eyes import geometry as g
 
-    pixels_per_unit = 800 / g.CONTOUR_BBOX[2]
-    assert a.GAZE_TRAVEL * pixels_per_unit > 50
+    PANEL_WIDTH = 1024                      # measured on the MPI7010 7" panel
+    pixels_per_unit = PANEL_WIDTH / g.CONTOUR_BBOX[2]
+    assert a.GAZE_TRAVEL * pixels_per_unit > 64
 
 
 def test_lid_color_is_a_sonic_blue_hex():
