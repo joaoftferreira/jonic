@@ -33,7 +33,7 @@ You are the puppeteer. The four buttons are all there is:
 
 | Button | What happens |
 |--------|--------------|
-| **😉 Blink** | a blue eyelid drops and lifts, about a third of a second |
+| **😉 Blink** | a blue eyelid drops, holds shut a moment, and lifts; half a second |
 | **👈 Look left** | the eyes turn left and **hold** |
 | **Look right 👉** | the eyes turn right and **hold** |
 | **👀 Look ahead** | back to looking straight at whoever is in front |

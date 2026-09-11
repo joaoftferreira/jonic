@@ -16,7 +16,7 @@ can be stretched to fit whatever the mechanical frame ends up being.
 | | |
 |---|---|
 | 👀 **Eyes on the LCD** | SVG contour, irises and shines, fitted and centred on the panel |
-| 😉 **Blink** | a Sonic-blue eyelid drops over both eyes and lifts, 300 ms |
+| 😉 **Blink** | a Sonic-blue eyelid drops over both eyes, holds shut, and lifts, 500 ms |
 | 👈 👉 **Look left / right / ahead** | the irises turn and hold until you change them |
 | 📱 **Phone remote** | four buttons, plus a live status pill for the face |
 | 🔧 **Live calibration** | width, height and position sliders that update the LCD as you drag, then save |

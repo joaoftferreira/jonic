@@ -40,10 +40,17 @@ page plays. The server holds no animation state and no timing; it only names the
 
 | Name | What the face does | Duration |
 |------|--------------------|----------|
-| `blink` | a Sonic-blue eyelid drops over both eyes and lifts again | 300 ms |
+| `blink` | a Sonic-blue eyelid drops over both eyes, holds shut, and lifts | 500 ms |
 | `look_left` | both irises slide left and **stay** there | 180 ms |
 | `look_right` | both irises slide right and **stay** there | 180 ms |
 | `center` | irises return to the resting pose | 180 ms |
+
+The blink holds shut in the middle rather than closing for an instant. The Pi 3 paints
+only about eight frames across the whole blink, so a momentary closure is usually never
+drawn and the lid appears to stall halfway down. The plateau is worth roughly three frames,
+which makes the eyes visibly shut on every press. Measured on the panel: six blinks out of
+six. The timing lives in `eyes/animations.py` and is handed to the page, so the two cannot
+drift apart.
 
 Gaze **latches** on purpose: a puppeteer wants to hold a look, so there is an explicit
 button to come back to centre rather than an automatic snap-back.

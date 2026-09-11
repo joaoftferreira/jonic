@@ -8,8 +8,17 @@ def test_the_three_requested_animations_exist_plus_a_way_back_to_center():
     assert set(a.ANIMATIONS) == {"blink", "look_left", "look_right", "center"}
 
 
-def test_blink_is_fast_enough_to_read_as_a_blink():
-    assert a.ANIMATIONS["blink"]["duration_ms"] == 300
+def test_blink_is_quick_but_drawable_on_a_slow_panel():
+    assert 400 <= a.ANIMATIONS["blink"]["duration_ms"] <= 700
+
+
+def test_the_lid_holds_shut_long_enough_to_be_painted():
+    """A single instantaneous closure is never drawn on a panel that drops
+    frames, and the blink then looks like it stalls halfway down."""
+    assert 0 < a.BLINK_CLOSED_FROM < a.BLINK_CLOSED_TO < 1
+    hold_ms = (a.BLINK_CLOSED_TO - a.BLINK_CLOSED_FROM) * a.BLINK_MS
+    # Two frames at the ~15 fps the Pi 3 manages, so one always lands inside.
+    assert hold_ms >= 2 * (1000 / 15)
 
 
 def test_gaze_animations_move_opposite_ways_and_center_does_not_move():

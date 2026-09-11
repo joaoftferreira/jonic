@@ -19,8 +19,22 @@ GAZE_TRAVEL = 15.0
 # test_animations measures both against the real outline.
 GAZE_INNER_RATIO = 0.3
 
-# Fast, so it reads as a blink and not a doze.
-BLINK_MS = 300
+# Fast enough to read as a blink rather than a doze, but not so fast that a
+# slow panel cannot draw it. 300 ms was too quick on the Pi 3: the eyes often
+# appeared to shut only halfway.
+BLINK_MS = 500
+
+# The lid holds shut between these two fractions of the blink. Without a hold
+# it is fully closed at a single instant, and a renderer that is dropping
+# frames simply never paints that instant -- so the lid visibly turns back
+# partway down and the blink never completes. The plateau guarantees at least
+# one painted frame with the eyes actually shut.
+#
+# Measured on the Pi 3: it paints only about 8 frames across the whole blink,
+# roughly 60 ms apart, so the plateau needs to be worth three of them.
+BLINK_CLOSED_FROM = 0.30     # shut by 150 ms
+BLINK_CLOSED_TO = 0.70       # held shut for 200 ms, then 150 ms to open
+
 GAZE_MS = 180
 
 ANIMATIONS = {

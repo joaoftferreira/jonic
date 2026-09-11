@@ -14,7 +14,11 @@
   var centerX = data.center[0], centerY = data.center[1];
   // Far enough above the face that the lid is completely clear of it at rest.
   var LID_PARK = -(bboxH + 20);
-  var BLINK_MS = 300;
+  // Timing comes from eyes/animations.py. The fallback matters: the static
+  // files and the Python are deployed together but restart separately, so a
+  // server that has not been restarted yet serves this newer script without
+  // the timing. Without a default, every blink then throws instead of playing.
+  var BLINK = data.blink || { ms: 500, closedFrom: 0.32, closedTo: 0.62 };
 
   var calibration = data.calibration;
 
@@ -42,11 +46,16 @@
   function blink() {
     // Restart rather than queue, so a mashed button still looks like blinking.
     if (blinkAnim) { blinkAnim.cancel(); }
+    // Four keyframes, not three: the lid holds shut between closedFrom and
+    // closedTo. With a single instantaneous peak, a panel that is dropping
+    // frames never paints the eyes actually closed, and the blink reads as the
+    // lid stalling halfway down.
     blinkAnim = lid.animate([
-      { transform: "translateY(" + LID_PARK + "px)", easing: "ease-in" },
-      { transform: "translateY(0px)", offset: 0.5, easing: "ease-out" },
-      { transform: "translateY(" + LID_PARK + "px)" }
-    ], { duration: BLINK_MS });
+      { transform: "translateY(" + LID_PARK + "px)", offset: 0, easing: "ease-in" },
+      { transform: "translateY(0px)", offset: BLINK.closedFrom },
+      { transform: "translateY(0px)", offset: BLINK.closedTo, easing: "ease-out" },
+      { transform: "translateY(" + LID_PARK + "px)", offset: 1 }
+    ], { duration: BLINK.ms });
     blinkAnim.onfinish = function () { blinkAnim = null; };
   }
 

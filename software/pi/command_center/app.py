@@ -103,6 +103,9 @@ def eyes_page():
         lid_color=animations.LID_COLOR,
         gaze_travel=animations.GAZE_TRAVEL,
         gaze_inner_ratio=animations.GAZE_INNER_RATIO,
+        blink={"ms": animations.BLINK_MS,
+               "closedFrom": animations.BLINK_CLOSED_FROM,
+               "closedTo": animations.BLINK_CLOSED_TO},
         calibration=_calibration,
     )
 
