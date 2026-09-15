@@ -22,6 +22,7 @@ can be stretched to fit whatever the mechanical frame ends up being.
 | 💎 **Emeralds** | nine Chaos Emeralds snake into each eye, form an octagon around the blue one, and keep turning |
 | 🔧 **Live calibration** | width, height and position sliders that update the LCD as you drag, then save |
 
+| 🎯 **Shoot Eggman** | a few seconds of cartoon showing the children what to do, then the eyes return |
 | 🤖 **Eggman's robot** | hold-to-drive on two wheels, a white LED ring, and a servo that unlocks the chest |
 
 **Hardware still to build:** the robot itself. The firmware compiles and the controls are

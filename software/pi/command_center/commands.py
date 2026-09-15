@@ -19,6 +19,8 @@ BUTTONS = [
      "transport": "eyes", "animation": "center", "group": "eyes"},
     {"id": "eyes_emeralds", "label": "💎 Emeralds",
      "transport": "eyes", "animation": "emeralds", "group": "eyes"},
+    {"id": "eyes_shoot_eggman", "label": "🎯 Shoot Eggman",
+     "transport": "eyes", "animation": "shoot_eggman", "group": "eyes"},
 
     # Driving. `hold` tells the phone to repeat the press while your finger is
     # down; releasing sends robot_stop. None of these are retained, because a

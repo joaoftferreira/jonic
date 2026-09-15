@@ -21,7 +21,7 @@ from command_center.commands import BUTTONS, button
 from command_center.hub import WebSocketHub
 from common import mqtt_contract as c
 from eyes import animations, calibration, emeralds
-from eyes import geometry
+from eyes import geometry, scene
 from robot import settings as robot_settings
 
 BROKER = "127.0.0.1"      # the broker runs on this same Pi
@@ -118,6 +118,9 @@ def eyes_page():
         gaze_travel=animations.GAZE_TRAVEL,
         gaze_inner_ratio=animations.GAZE_INNER_RATIO,
         emeralds=emeralds,
+        scene=scene,
+        # Jinja has no comprehensions, so sample the dart's arc here.
+        dart_path=[scene.dart_point(k / 20) for k in range(21)],
         emerald_eyes=[
             {"cx": cx, "cy": cy, "entry": entry,
              "slots": [{"name": n, "color": c, "index": i}

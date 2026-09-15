@@ -38,6 +38,7 @@ You are the puppeteer. The four buttons are all there is:
 | **Look right 👉** | the eyes turn right and **hold** |
 | **👀 Look ahead** | back to looking straight at whoever is in front |
 | **💎 Emeralds** | the nine Chaos Emeralds gather in both eyes and keep turning |
+| **🎯 Shoot Eggman** | the briefing: a kid shoots Eggman and cheers. Ends by itself |
 
 ## Driving the robot
 
@@ -57,6 +58,10 @@ ground, before the children are in the room.
 
 Because a look holds until you change it, remember to press **Look ahead** before you walk
 away, or Sonic spends the rest of the party staring at a wall.
+
+**Shoot Eggman** is the explainer. Play it once as the children gather so they see what
+they are supposed to do, and again for any child who arrives late. It runs from the top
+every press and puts the eyes back afterwards, so it is always safe to hit.
 
 **Emeralds** is the payoff button. The gems take about two and a half seconds to gather, so
 press it as the children arrive rather than after, and let it keep turning while they look.

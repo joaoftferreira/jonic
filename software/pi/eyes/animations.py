@@ -4,7 +4,7 @@ This is the contract between the phone (which names an animation), the server
 (which validates the name and broadcasts it) and the kiosk page (which plays
 it). Keep it small: the page owns all timing, the server owns none.
 """
-from eyes import emeralds
+from eyes import emeralds, scene
 
 # Sonic's fur blue. The eyelid is the only coloured thing on screen.
 LID_COLOR = "#1F4FD8"
@@ -49,6 +49,9 @@ ANIMATIONS = {
     # The Chaos Emeralds fill both eyes and then turn forever. Like gaze it
     # latches; any other animation clears it and brings the irises back.
     "emeralds": {"kind": "emeralds", "duration_ms": emeralds.settle_ms()},
+    # A few seconds of cartoon telling the children what to do. Unlike the
+    # others this one ends by itself and leaves the eyes as it found them.
+    "shoot_eggman": {"kind": "scene", "duration_ms": scene.total_ms()},
 }
 
 

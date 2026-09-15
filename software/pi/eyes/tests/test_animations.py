@@ -6,7 +6,7 @@ from eyes.tests import outline
 
 def test_the_animations_are_the_ones_the_remote_offers():
     assert set(a.ANIMATIONS) == {"blink", "look_left", "look_right",
-                                 "center", "emeralds"}
+                                 "center", "emeralds", "shoot_eggman"}
 
 
 def test_emeralds_reports_how_long_the_reveal_takes():

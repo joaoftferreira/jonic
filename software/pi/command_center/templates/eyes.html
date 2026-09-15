@@ -26,6 +26,8 @@
       <path d="M -5,-2 L -1.6,-2 L 0,6.75 Z" fill="#000000" opacity="0.25"/>
     </g>
 
+{% include "_actors.html" %}
+
     <clipPath id="contour-clip" clipPathUnits="userSpaceOnUse">
       <path d="{{ geometry.CONTOUR_PATH }}"/>
     </clipPath>
@@ -72,6 +74,17 @@
       </g>
       {% endfor %}
 
+      <!-- The "shoot Eggman" briefing. Hidden until it is played. -->
+      <g class="scene">
+        <g class="actor kid">
+          <g class="pose aim"><use href="#kid-aim"/></g>
+          <g class="pose cheer"><use href="#kid-happy"/></g>
+        </g>
+        <g class="actor eggman"><use href="#eggman"/></g>
+        <g class="dart"><use href="#dart"/></g>
+        <g class="boom"><use href="#boom"/></g>
+      </g>
+
       <!-- The eyelid starts parked above the face and drops through it. -->
       <rect id="lid"
             x="{{ geometry.CONTOUR_BBOX[0] - 10 }}"
@@ -93,6 +106,22 @@
   "gazeTravel": gaze_travel,
   "gazeInnerRatio": gaze_inner_ratio,
   "blink": blink,
+  "scene": {
+    "kid": scene.KID_CENTER,
+    "eggman": scene.EGGMAN_CENTER,
+    "scale": scene.ACTOR_SCALE,
+    "entrance": scene.ENTRANCE_OFFSET,
+    "muzzle": scene.MUZZLE_OFFSET,
+    "impact": scene.IMPACT_OFFSET,
+    "dartScale": scene.DART_SCALE,
+    "dartPath": dart_path,
+    "t": scene.timeline(),
+    "enterMs": scene.ENTER_MS,
+    "shotMs": scene.SHOT_MS,
+    "boomMs": scene.BOOM_MS,
+    "cheerMs": scene.CHEER_MS,
+    "exitMs": scene.EXIT_MS,
+  },
   "emeralds": {
     "eyes": emerald_eyes,
     "ringRadius": emeralds.RING_RADIUS,

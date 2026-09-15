@@ -166,9 +166,124 @@
     }, settle);
   }
 
+  /* ---- the "shoot Eggman" briefing -------------------------------------- */
+
+  var SC = data.scene;
+  var sceneAnims = [];
+  var sceneTimer = null;
+  var kidEl = document.querySelector(".actor.kid");
+  var eggEl = document.querySelector(".actor.eggman");
+  var dartEl = document.querySelector(".dart");
+  var boomEl = document.querySelector(".boom");
+  var poseAim = document.querySelector(".pose.aim");
+  var poseCheer = document.querySelector(".pose.cheer");
+
+  function place(x, y, s) {
+    return "translate(" + x + "px," + y + "px) scale(" + s + ")";
+  }
+
+  function stopScene() {
+    if (sceneTimer) { clearTimeout(sceneTimer); sceneTimer = null; }
+    for (var i = 0; i < sceneAnims.length; i++) { sceneAnims[i].cancel(); }
+    sceneAnims = [];
+    stage.classList.remove("scene-on");
+  }
+
+  function showScene() {
+    if (!SC) { return; }
+    stopEmeralds();
+    stopScene();                      // a second press restarts the briefing
+    stage.classList.add("scene-on");
+
+    var t = SC.t;
+    var kx = SC.kid[0], ky = SC.kid[1];
+    var ex = SC.eggman[0], ey = SC.eggman[1];
+    var s = SC.scale;
+    var mx = kx + SC.muzzle[0], my = ky + SC.muzzle[1];
+    var ix = ex + SC.impact[0], iy = ey + SC.impact[1];
+
+    function run(el, frames, options) {
+      options.fill = "forwards";      // never "backwards": a delayed animation
+      var a = el.animate(frames, options);   // must not paint before its beat
+      sceneAnims.push(a);
+      return a;
+    }
+
+    // Park them off the face before the first frame, so nothing flashes at the
+    // origin between adding the class and the animation taking hold.
+    kidEl.style.transform = place(kx - SC.entrance, ky, s);
+    eggEl.style.transform = place(ex + SC.entrance, ey, s);
+
+    var slide = { duration: SC.enterMs, easing: "cubic-bezier(.2,.75,.3,1)" };
+
+    // 1. the kid runs in from the left, Eggman from the right
+    run(kidEl, [{ transform: place(kx - SC.entrance, ky, s) },
+                { transform: place(kx, ky, s) }], slide);
+    run(eggEl, [{ transform: place(ex + SC.entrance, ey, s) },
+                { transform: place(ex, ey, s) }], slide);
+
+    // 2. the shot: a little recoil, and the dart crossing to Eggman
+    run(kidEl, [{ transform: place(kx, ky, s) },
+                { transform: place(kx - 3, ky, s), offset: 0.25 },
+                { transform: place(kx, ky, s) }],
+        { duration: SC.shotMs, delay: t.shot, easing: "ease-out" });
+    // The dart lobs rather than flying straight: a straight shot crosses the
+    // notch dividing the eyes, where the clip would hide it for half its
+    // flight. The path is sampled in eyes/scene.py, which also tests that
+    // every point of it lands on the white.
+    var dartFrames = [];
+    for (var d = 0; d < SC.dartPath.length; d++) {
+      var pt = SC.dartPath[d];
+      var next = SC.dartPath[Math.min(d + 1, SC.dartPath.length - 1)];
+      var prev = SC.dartPath[Math.max(d - 1, 0)];
+      var tilt = Math.atan2(next[1] - prev[1], next[0] - prev[0]) * 180 / Math.PI;
+      dartFrames.push({
+        offset: d / (SC.dartPath.length - 1),
+        opacity: 1,
+        transform: place(pt[0], pt[1], SC.dartScale) + " rotate(" + tilt + "deg)"
+      });
+    }
+    dartFrames[dartFrames.length - 1].opacity = 0;   // gone as the blast starts
+    run(dartEl, dartFrames,
+        { duration: SC.shotMs, delay: t.shot, easing: "linear" });
+
+    // 3. Eggman goes up, and the blast with him
+    // Sized against the actors, not the raw artwork: the blast art is ~94
+    // units tall and the whole eye is only 82, so scale 1 would overflow it.
+    run(boomEl, [{ transform: place(ix, iy, s * 0.25), opacity: 0 },
+                 { transform: place(ix, iy, s * 1.05), opacity: 1, offset: 0.25 },
+                 { transform: place(ix, iy, s * 1.7), opacity: 0 }],
+        { duration: SC.boomMs, delay: t.boom, easing: "ease-out" });
+    run(eggEl, [{ transform: place(ex, ey, s * 1.15), opacity: 1 },
+                { transform: place(ex, ey, s * 1.3), opacity: 1, offset: 0.35 },
+                { transform: place(ex, ey, s * 0.1), opacity: 0 }],
+        { duration: Math.round(SC.boomMs * 0.55), delay: t.boom, easing: "ease-in" });
+
+    // 4. the kid cheers: swap pose and give a hop
+    run(poseAim, [{ opacity: 1 }, { opacity: 0 }],
+        { duration: 120, delay: t.cheer });
+    run(poseCheer, [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 120, delay: t.cheer });
+    run(kidEl, [{ transform: place(kx, ky, s) },
+                { transform: place(kx, ky - 6, s), offset: 0.4 },
+                { transform: place(kx, ky, s) }],
+        { duration: 520, delay: t.cheer, easing: "ease-out" });
+
+    // 5. everyone leaves and the eyes come back
+    run(kidEl, [{ transform: place(kx, ky, s), opacity: 1 },
+                { transform: place(kx - SC.entrance, ky, s), opacity: 1 }],
+        { duration: SC.exitMs, delay: t.exit, easing: "ease-in" });
+
+    sceneTimer = setTimeout(function () {
+      stopScene();
+      poseAim.style.opacity = "";     // ready for the next press
+      poseCheer.style.opacity = "";
+    }, t.end);
+  }
+
   // Every other animation puts the eyes back, which is how the emeralds end.
   function andClearEmeralds(run) {
-    return function () { stopEmeralds(); run(); };
+    return function () { stopEmeralds(); stopScene(); run(); };
   }
 
   var ANIMATIONS = {
@@ -176,7 +291,8 @@
     look_left: andClearEmeralds(function () { gazeTo(-1); }),
     look_right: andClearEmeralds(function () { gazeTo(1); }),
     center: andClearEmeralds(function () { gazeTo(0); }),
-    emeralds: showEmeralds
+    emeralds: function () { stopScene(); showEmeralds(); },
+    shoot_eggman: showScene
   };
 
   function handle(message) {
@@ -211,7 +327,8 @@
     else if (event.key === "ArrowLeft") { ANIMATIONS.look_left(); }
     else if (event.key === "ArrowRight") { ANIMATIONS.look_right(); }
     else if (event.key === "ArrowDown") { ANIMATIONS.center(); }
-    else if (event.key === "e") { showEmeralds(); }
+    else if (event.key === "e") { ANIMATIONS.emeralds(); }
+    else if (event.key === "s") { showScene(); }
     else { return; }
     event.preventDefault();
   });

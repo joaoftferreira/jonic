@@ -45,6 +45,7 @@ page plays. The server holds no animation state and no timing; it only names the
 | `look_right` | both irises slide right and **stay** there | 180 ms |
 | `center` | irises return to the resting pose | 180 ms |
 | `emeralds` | nine Chaos Emeralds fill each eye, then turn forever | 2.6 s to settle |
+| `shoot_eggman` | the briefing: a kid shoots Eggman, then cheers | 3.5 s, then it ends itself |
 
 The blink holds shut in the middle rather than closing for an instant. The Pi 3 paints
 only about eight frames across the whole blink, so a momentary closure is usually never
@@ -52,6 +53,21 @@ drawn and the lid appears to stall halfway down. The plateau is worth roughly th
 which makes the eyes visibly shut on every press. Measured on the panel: six blinks out of
 six. The timing lives in `eyes/animations.py` and is handed to the page, so the two cannot
 drift apart.
+
+### The briefing
+
+`shoot_eggman` is a few seconds of cartoon that tells the children what they are meant to
+do. A kid with a Nerf blaster slides into the left eye, Eggman's Egg Mobile into the right,
+the kid fires, Eggman blows up, the kid cheers, and the eyes go back to normal. Alone among
+the animations it ends by itself and restores what it found, because it is an instruction
+rather than a mood, and it restarts from the top on every press.
+
+The dart lobs rather than flying straight, and that is not decoration. A straight line
+between the two eyes crosses the notch that divides them, where there is no white, so the
+contour clip hid the dart for over half its flight and it read as a rendering fault. Below
+y = -103 the two lobes join into one continuous white area; arcing the shot through there
+keeps the dart visible the whole way. `test_scene` walks the sampled path and asserts every
+point of it lands on the white.
 
 ### The emeralds
 

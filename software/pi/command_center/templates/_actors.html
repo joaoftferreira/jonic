@@ -1,0 +1,109 @@
+  <!-- ==================== the briefing's cast ============================
+       Each actor is drawn in a 100-unit-tall box centred on its own origin,
+       then scaled to the eye by eyes/scene.py. Flat shapes with a dark outline
+       so they still read at a glance on a 7" panel from across a room. -->
+
+  <clipPath id="egg-hull"><circle cx="0" cy="16" r="36"/></clipPath>
+
+  <g id="eggman">
+    <!-- Egg Mobile: red sphere, dark underside, silver rim with rivets. -->
+    <g clip-path="url(#egg-hull)">
+      <circle cx="0" cy="16" r="36" fill="#D8232A"/>
+      <rect x="-50" y="36" width="100" height="40" fill="#17171A"/>
+      <ellipse cx="-13" cy="26" rx="17" ry="10" fill="#B01A22"/>
+      <rect x="-40" y="0" width="80" height="10" fill="#C6CAD0"/>
+      <rect x="-40" y="0" width="80" height="3" fill="#EDF0F3"/>
+      <g fill="#8E939B">
+        <circle cx="-28" cy="5" r="1.8"/><circle cx="-14" cy="5" r="1.8"/>
+        <circle cx="0" cy="5" r="1.8"/><circle cx="14" cy="5" r="1.8"/>
+        <circle cx="28" cy="5" r="1.8"/>
+      </g>
+    </g>
+    <circle cx="0" cy="16" r="36" fill="none" stroke="#2B0708" stroke-width="2.5"/>
+    <!-- porthole and headlamp -->
+    <circle cx="-14" cy="30" r="7.5" fill="#101012" stroke="#F2B300" stroke-width="3"/>
+    <ellipse cx="27" cy="26" rx="7" ry="9.5" fill="#FFD400" stroke="#8A6A00" stroke-width="2"/>
+    <ellipse cx="27" cy="26" rx="3" ry="5" fill="#FFF3A8"/>
+
+    <!-- Eggman himself, from the rim up -->
+    <path d="M -19,2 C -17,-12 -10,-18 0,-18 C 10,-18 17,-12 19,2 Z"
+          fill="#D8232A" stroke="#2B0708" stroke-width="2"/>
+    <path d="M -4,-16 L -4,2 L 4,2 L 4,-16 Z" fill="#E9ECEF"/>
+    <ellipse cx="0" cy="-26" rx="15.5" ry="15" fill="#F7C9A0" stroke="#2B0708" stroke-width="2"/>
+    <!-- goggles pushed up on the bald head -->
+    <path d="M -15,-35 C -8,-41 8,-41 15,-35 L 15,-31 C 8,-36 -8,-36 -15,-31 Z"
+          fill="#2E2A28" stroke="#161312" stroke-width="1.5"/>
+    <circle cx="8" cy="-36" r="3.6" fill="#3BB54A" stroke="#161312" stroke-width="1.2"/>
+    <!-- The moustache goes on before the face, exactly as it reads in the
+         reference: the nose sits on top of it and the glasses above that. -->
+    <path d="M -1,-14 C -12,-23 -28,-24 -36,-11 C -28,-13 -22,-8 -14,-6 C -9,-5 -4,-8 -1,-10 Z"
+          fill="#6B4423" stroke="#2B0708" stroke-width="1.8"/>
+    <path d="M 1,-14 C 12,-23 28,-24 36,-11 C 28,-13 22,-8 14,-6 C 9,-5 4,-8 1,-10 Z"
+          fill="#6B4423" stroke="#2B0708" stroke-width="1.8"/>
+    <!-- blue pince-nez and the red nose -->
+    <path d="M -13,-28 L 13,-28 L 13,-22 L -13,-22 Z" fill="#2B3A8F" stroke="#141A40" stroke-width="1.6"/>
+    <path d="M -13,-27 L 13,-27 L 13,-25.5 L -13,-25.5 Z" fill="#6E86E8" opacity="0.7"/>
+    <circle cx="0" cy="-17.5" r="5" fill="#E0484A" stroke="#2B0708" stroke-width="1.6"/>
+    <circle cx="-1.6" cy="-19" r="1.6" fill="#F2908F"/>
+  </g>
+
+  <!-- The kid. Two poses share a body: aiming, then cheering. -->
+  <g id="kid-body">
+    <path d="M -11,44 L -11,18 L -4,18 L -4,44 Z" fill="#2B4E9B" stroke="#14203F" stroke-width="1.6"/>
+    <path d="M 4,44 L 4,18 L 11,18 L 11,44 Z" fill="#2B4E9B" stroke="#14203F" stroke-width="1.6"/>
+    <ellipse cx="-8" cy="45" rx="7" ry="4" fill="#E8EAEE" stroke="#14203F" stroke-width="1.6"/>
+    <ellipse cx="8" cy="45" rx="7" ry="4" fill="#E8EAEE" stroke="#14203F" stroke-width="1.6"/>
+    <path d="M -15,20 C -15,0 -9,-6 0,-6 C 9,-6 15,0 15,20 Z"
+          fill="#1FA85C" stroke="#0C3D22" stroke-width="2"/>
+    <circle cx="0" cy="-22" r="15" fill="#F7C9A0" stroke="#2B0708" stroke-width="2"/>
+    <path d="M -15,-25 C -14,-40 14,-40 15,-25 C 10,-32 -9,-32 -15,-25 Z"
+          fill="#4A2F1B" stroke="#2B0708" stroke-width="1.6"/>
+  </g>
+
+  <g id="kid-aim">
+    <use href="#kid-body"/>
+    <circle cx="-5.5" cy="-23" r="2.2" fill="#1A1A1A"/>
+    <circle cx="5.5" cy="-23" r="2.2" fill="#1A1A1A"/>
+    <path d="M -4,-14 C -1,-11 1,-11 4,-14" fill="none" stroke="#1A1A1A"
+          stroke-width="2" stroke-linecap="round"/>
+    <!-- arms out to the right, holding the blaster -->
+    <path d="M -2,2 L 16,-3" stroke="#F7C9A0" stroke-width="7" stroke-linecap="round"/>
+    <path d="M -2,8 L 14,1" stroke="#F7C9A0" stroke-width="7" stroke-linecap="round"/>
+    <g transform="translate(20,-2)">
+      <path d="M -6,-5 L 14,-5 L 14,2 L -6,2 Z" fill="#FF6A13" stroke="#7A2E00" stroke-width="1.6"/>
+      <path d="M -6,2 L -1,2 L -3,11 L -8,11 Z" fill="#2B4E9B" stroke="#14203F" stroke-width="1.6"/>
+      <rect x="12" y="-4" width="6" height="5" rx="1.5" fill="#2979FF" stroke="#14203F" stroke-width="1.4"/>
+      <circle cx="-1" cy="-8" r="4" fill="#FFD400" stroke="#7A2E00" stroke-width="1.4"/>
+    </g>
+  </g>
+
+  <g id="kid-happy">
+    <use href="#kid-body"/>
+    <!-- squeezed-shut happy eyes and an open grin -->
+    <path d="M -9,-24 C -7,-28 -3,-28 -1,-24" fill="none" stroke="#1A1A1A"
+          stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M 1,-24 C 3,-28 7,-28 9,-24" fill="none" stroke="#1A1A1A"
+          stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M -6,-15 C -3,-9 3,-9 6,-15 Z" fill="#7A1216" stroke="#1A1A1A" stroke-width="1.6"/>
+    <!-- both arms thrown up -->
+    <path d="M -3,2 L -17,-12" stroke="#F7C9A0" stroke-width="7" stroke-linecap="round"/>
+    <path d="M 3,2 L 17,-12" stroke="#F7C9A0" stroke-width="7" stroke-linecap="round"/>
+    <g transform="translate(20,-16) rotate(-35)">
+      <path d="M -6,-5 L 14,-5 L 14,2 L -6,2 Z" fill="#FF6A13" stroke="#7A2E00" stroke-width="1.6"/>
+      <path d="M -6,2 L -1,2 L -3,11 L -8,11 Z" fill="#2B4E9B" stroke="#14203F" stroke-width="1.6"/>
+    </g>
+  </g>
+
+  <g id="dart">
+    <rect x="-7" y="-2.6" width="12" height="5.2" rx="2.6" fill="#FF6A13"
+          stroke="#7A2E00" stroke-width="1.2"/>
+    <circle cx="6" cy="0" r="3.4" fill="#2979FF" stroke="#14203F" stroke-width="1.2"/>
+  </g>
+
+  <g id="boom">
+    <path d="M0,-46 L10,-16 40,-20 20,2 38,28 8,19 -3,48 -12,17 -42,22 -22,-2 -40,-29 -9,-16 Z"
+          fill="#FF6A13"/>
+    <path d="M0,-30 L7,-10 26,-13 13,1 25,18 5,12 -2,31 -8,11 -27,14 -14,-1 -26,-19 -6,-10 Z"
+          fill="#FFD400"/>
+    <circle cx="0" cy="0" r="11" fill="#FFF6C9"/>
+  </g>
